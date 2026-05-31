@@ -1,0 +1,235 @@
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: sms-postgres
+    environment:
+      POSTGRES_USER: sms_user
+      POSTGRES_PASSWORD: sms_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/init-databases.sql:/docker-entrypoint-initdb.d/init-databases.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sms_user"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    container_name: sms-mailhog
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
+  eureka-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        MODULE: eureka-server
+    container_name: sms-eureka
+    ports:
+      - "8761:8761"
+    environment:
+      EUREKA_HOST: eureka-server
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8761/actuator/health >/dev/null 2>&1 || wget -qO- http://localhost:8761 >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
+    restart: unless-stopped
+
+  auth-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        MODULE: auth-service
+    container_name: sms-auth
+    depends_on:
+      postgres:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: auth_db
+      DB_USER: sms_user
+      DB_PASSWORD: sms_pass
+      EUREKA_HOST: eureka-server
+      JWT_SECRET: StudentManagementSystemSecretKeyForJWT2024MustBeLongEnough
+      REGISTRATION_BASE_URL: http://localhost:5173/register
+    ports:
+      - "8081:8081"
+    restart: unless-stopped
+
+  course-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        MODULE: course-service
+    container_name: sms-course
+    depends_on:
+      postgres:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: course_db
+      DB_USER: sms_user
+      DB_PASSWORD: sms_pass
+      EUREKA_HOST: eureka-server
+    ports:
+      - "8085:8085"
+
+  notification-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        MODULE: notification-service
+    container_name: sms-notification
+    depends_on:
+      postgres:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: notification_db
+      DB_USER: sms_user
+      DB_PASSWORD: sms_pass
+      EUREKA_HOST: eureka-server
+    ports:
+      - "8086:8086"
+
+  student-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        MODULE: student-service
+    container_name: sms-student
+    depends_on:
+      postgres:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+      course-service:
+        condition: service_started
+      notification-service:
+        condition: service_started
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: student_db
+      DB_USER: sms_user
+      DB_PASSWORD: sms_pass
+      EUREKA_HOST: eureka-server
+    ports:
+      - "8083:8083"
+
+  teacher-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        MODULE: teacher-service
+    container_name: sms-teacher
+    depends_on:
+      postgres:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+      course-service:
+        condition: service_started
+      notification-service:
+        condition: service_started
+      student-service:
+        condition: service_started
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: teacher_db
+      DB_USER: sms_user
+      DB_PASSWORD: sms_pass
+      EUREKA_HOST: eureka-server
+    ports:
+      - "8084:8084"
+
+  admin-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        MODULE: admin-service
+    container_name: sms-admin
+    depends_on:
+      postgres:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+      auth-service:
+        condition: service_started
+      student-service:
+        condition: service_started
+      teacher-service:
+        condition: service_started
+      course-service:
+        condition: service_started
+      notification-service:
+        condition: service_started
+      mailhog:
+        condition: service_started
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: admin_db
+      DB_USER: sms_user
+      DB_PASSWORD: sms_pass
+      EUREKA_HOST: eureka-server
+      MAIL_HOST: mailhog
+      MAIL_PORT: 1025
+    ports:
+      - "8082:8082"
+
+  api-gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        MODULE: api-gateway
+    container_name: sms-gateway
+    depends_on:
+      eureka-server:
+        condition: service_started
+      auth-service:
+        condition: service_started
+      admin-service:
+        condition: service_started
+      student-service:
+        condition: service_started
+      teacher-service:
+        condition: service_started
+      course-service:
+        condition: service_started
+      notification-service:
+        condition: service_started
+    environment:
+      EUREKA_HOST: eureka-server
+      JWT_SECRET: StudentManagementSystemSecretKeyForJWT2024MustBeLongEnough
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

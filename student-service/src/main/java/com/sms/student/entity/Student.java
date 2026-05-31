@@ -1,0 +1,43 @@
+package com.sms.student.entity;
+
+import com.sms.common.enums.RegistrationStatus;
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@Entity
+@Table(name = "students")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class Student {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String name;
+
+    @Column(nullable = false, unique = true)
+    private String email;
+
+    private String phone;
+    private String address;
+    private String rollNumber;
+    private String className;
+    private String department;
+
+    @ElementCollection
+    @CollectionTable(name = "student_subjects", joinColumns = @JoinColumn(name = "student_id"))
+    @Column(name = "subject")
+    @Builder.Default
+    private List<String> subjects = new ArrayList<>();
+
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private RegistrationStatus status = RegistrationStatus.PENDING_REGISTRATION;
+}

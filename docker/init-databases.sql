@@ -1,0 +1,13 @@
+CREATE DATABASE auth_db;
+CREATE DATABASE admin_db;
+CREATE DATABASE student_db;
+CREATE DATABASE teacher_db;
+CREATE DATABASE course_db;
+CREATE DATABASE notification_db;
+
+GRANT ALL PRIVILEGES ON DATABASE auth_db TO sms_user;
+GRANT ALL PRIVILEGES ON DATABASE admin_db TO sms_user;
+GRANT ALL PRIVILEGES ON DATABASE student_db TO sms_user;
+GRANT ALL PRIVILEGES ON DATABASE teacher_db TO sms_user;
+GRANT ALL PRIVILEGES ON DATABASE course_db TO sms_user;
+GRANT ALL PRIVILEGES ON DATABASE notification_db TO sms_user;
