@@ -1,0 +1,30 @@
+apiVersion: networking.gke.io/v1
+kind: ManagedCertificate
+metadata:
+  name: sms-api-cert
+  namespace: sms
+spec:
+  domains:
+    - api.yourdomain.com
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: sms-api-ingress
+  namespace: sms
+  annotations:
+    kubernetes.io/ingress.class: "gce"
+    networking.gke.io/managed-certificates: sms-api-cert
+    kubernetes.io/ingress.global-static-ip-name: sms-api-ip
+spec:
+  rules:
+    - host: api.yourdomain.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: api-gateway
+                port:
+                  number: 80

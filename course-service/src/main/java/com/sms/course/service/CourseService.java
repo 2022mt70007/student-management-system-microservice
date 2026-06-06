@@ -2,6 +2,7 @@ package com.sms.course.service;
 
 import com.sms.common.dto.CourseRequest;
 import com.sms.common.dto.CourseResponse;
+import com.sms.common.security.InputSanitizer;
 import com.sms.course.entity.Course;
 import com.sms.course.repository.CourseRepository;
 import lombok.RequiredArgsConstructor;
@@ -19,10 +20,10 @@ public class CourseService {
     @Transactional
     public CourseResponse create(CourseRequest request) {
         Course course = Course.builder()
-                .title(request.getTitle())
-                .description(request.getDescription())
-                .department(request.getDepartment())
-                .instructor(request.getInstructor())
+                .title(InputSanitizer.cleanText(request.getTitle()))
+                .description(InputSanitizer.cleanText(request.getDescription()))
+                .department(InputSanitizer.cleanText(request.getDepartment()))
+                .instructor(InputSanitizer.cleanText(request.getInstructor()))
                 .credits(request.getCredits())
                 .build();
         return toResponse(courseRepository.save(course));
@@ -33,10 +34,10 @@ public class CourseService {
         Course course = courseRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Course not found"));
 
-        course.setTitle(request.getTitle());
-        course.setDescription(request.getDescription());
-        course.setDepartment(request.getDepartment());
-        course.setInstructor(request.getInstructor());
+        course.setTitle(InputSanitizer.cleanText(request.getTitle()));
+        course.setDescription(InputSanitizer.cleanText(request.getDescription()));
+        course.setDepartment(InputSanitizer.cleanText(request.getDepartment()));
+        course.setInstructor(InputSanitizer.cleanText(request.getInstructor()));
         course.setCredits(request.getCredits());
 
         return toResponse(courseRepository.save(course));

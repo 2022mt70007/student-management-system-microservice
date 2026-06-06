@@ -2,6 +2,7 @@ package com.sms.notification.service;
 
 import com.sms.common.dto.NotificationRequest;
 import com.sms.common.dto.NotificationResponse;
+import com.sms.common.security.InputSanitizer;
 import com.sms.notification.entity.Notification;
 import com.sms.notification.repository.NotificationRepository;
 import lombok.RequiredArgsConstructor;
@@ -20,9 +21,9 @@ public class NotificationService {
     @Transactional
     public NotificationResponse create(NotificationRequest request) {
         Notification notification = Notification.builder()
-                .title(request.getTitle())
-                .message(request.getMessage())
-                .targetRole(request.getTargetRole() != null ? request.getTargetRole().toUpperCase() : "ALL")
+                .title(InputSanitizer.cleanText(request.getTitle()))
+                .message(InputSanitizer.cleanText(request.getMessage()))
+                .targetRole(normalizeRole(request.getTargetRole()))
                 .createdAt(LocalDateTime.now())
                 .build();
         return toResponse(notificationRepository.save(notification));
@@ -33,9 +34,9 @@ public class NotificationService {
         Notification notification = notificationRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Notification not found"));
 
-        notification.setTitle(request.getTitle());
-        notification.setMessage(request.getMessage());
-        notification.setTargetRole(request.getTargetRole() != null ? request.getTargetRole().toUpperCase() : "ALL");
+        notification.setTitle(InputSanitizer.cleanText(request.getTitle()));
+        notification.setMessage(InputSanitizer.cleanText(request.getMessage()));
+        notification.setTargetRole(normalizeRole(request.getTargetRole()));
 
         return toResponse(notificationRepository.save(notification));
     }
@@ -73,5 +74,10 @@ public class NotificationService {
                 .targetRole(notification.getTargetRole())
                 .createdAt(notification.getCreatedAt())
                 .build();
+    }
+
+    private String normalizeRole(String role) {
+        String cleaned = InputSanitizer.cleanText(role);
+        return cleaned != null ? cleaned.toUpperCase() : "ALL";
     }
 }

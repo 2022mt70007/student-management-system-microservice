@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: eureka-server
+  namespace: sms
+  labels:
+    app: eureka-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: eureka-server
+  template:
+    metadata:
+      labels:
+        app: eureka-server
+    spec:
+      serviceAccountName: sms-ksa
+      containers:
+        - name: eureka-server
+          image: REGION-docker.pkg.dev/PROJECT_ID/sms-images/eureka-server:latest
+          ports:
+            - containerPort: 8761
+          env:
+            - name: EUREKA_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: sms-common-config
+                  key: EUREKA_HOST
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "500m"
+              memory: "768Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: eureka-server
+  namespace: sms
+spec:
+  selector:
+    app: eureka-server
+  ports:
+    - port: 8761
+      targetPort: 8761
+  type: ClusterIP

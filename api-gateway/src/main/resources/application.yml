@@ -8,22 +8,6 @@ spring:
     name: api-gateway
   cloud:
     gateway:
-      globalcors:
-        cors-configurations:
-          '[/**]':
-            allowedOriginPatterns:
-              - "http://localhost:*"
-              - "http://127.0.0.1:*"
-            allowedMethods:
-              - GET
-              - POST
-              - PUT
-              - PATCH
-              - DELETE
-              - OPTIONS
-            allowedHeaders: "*"
-            allowCredentials: false
-            maxAge: 3600
       discovery:
         locator:
           enabled: true

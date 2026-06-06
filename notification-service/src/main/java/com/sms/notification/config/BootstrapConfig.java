@@ -1,15 +1,11 @@
 package com.sms.notification.config;
 
-import com.sms.common.dto.ApiResponse;
 import com.sms.notification.entity.Notification;
 import com.sms.notification.repository.NotificationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.LocalDateTime;
 
@@ -31,14 +27,5 @@ public class BootstrapConfig {
                         .build());
             }
         };
-    }
-}
-
-@RestControllerAdvice
-class GlobalExceptionHandler {
-
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ApiResponse<Void>> handleIllegalArgument(IllegalArgumentException ex) {
-        return ResponseEntity.badRequest().body(ApiResponse.error(ex.getMessage()));
     }
 }

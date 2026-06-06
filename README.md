@@ -37,7 +37,9 @@ Client → API Gateway (8080, JWT) → Eureka (8761)
 
 ## Quick Start (Docker)
 
-> **Detailed local setup guide:** see [docs/LOCAL_SETUP.md](docs/LOCAL_SETUP.md) for step-by-step instructions (Docker, IntelliJ, troubleshooting).
+> **Detailed local setup guide:** see [docs/LOCAL_SETUP.md](docs/LOCAL_SETUP.md) for step-by-step instructions (Docker, IntelliJ, troubleshooting).  
+> **Production deployment:** see [docs/PRODUCTION_DEPLOYMENT.md](docs/PRODUCTION_DEPLOYMENT.md) for infrastructure, security, monitoring, scaling, and go-live checklist.  
+> **GCP deployment:** see [docs/GCP_DEPLOYMENT.md](docs/GCP_DEPLOYMENT.md) for GKE, Cloud SQL, Secret Manager, Cloud Build, and IAM setup.
 
 ```bash
 docker compose up --build

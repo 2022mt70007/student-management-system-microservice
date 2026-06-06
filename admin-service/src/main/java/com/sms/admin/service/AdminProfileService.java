@@ -6,6 +6,7 @@ import com.sms.admin.repository.AdminUserRepository;
 import com.sms.common.dto.*;
 import com.sms.common.enums.RegistrationStatus;
 import com.sms.common.enums.UserRole;
+import com.sms.common.security.InputSanitizer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,17 +23,18 @@ public class AdminProfileService {
 
     @Transactional
     public AdminUserResponse create(AdminUserRequest request) {
-        if (adminUserRepository.existsByEmail(request.getEmail())) {
+        String email = InputSanitizer.normalizeEmail(request.getEmail());
+        if (adminUserRepository.existsByEmail(email)) {
             throw new IllegalArgumentException("Admin with this email already exists");
         }
 
         AdminUser admin = AdminUser.builder()
-                .name(request.getName())
-                .adminId(request.getAdminId())
-                .department(request.getDepartment())
-                .email(request.getEmail())
-                .phone(request.getPhone())
-                .address(request.getAddress())
+                .name(InputSanitizer.cleanText(request.getName()))
+                .adminId(InputSanitizer.cleanText(request.getAdminId()))
+                .department(InputSanitizer.cleanText(request.getDepartment()))
+                .email(email)
+                .phone(InputSanitizer.cleanText(request.getPhone()))
+                .address(InputSanitizer.cleanText(request.getAddress()))
                 .status(RegistrationStatus.PENDING_REGISTRATION)
                 .build();
 
@@ -54,12 +56,12 @@ public class AdminProfileService {
         AdminUser admin = adminUserRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Admin not found"));
 
-        admin.setName(request.getName());
-        admin.setAdminId(request.getAdminId());
-        admin.setDepartment(request.getDepartment());
-        admin.setEmail(request.getEmail());
-        admin.setPhone(request.getPhone());
-        admin.setAddress(request.getAddress());
+        admin.setName(InputSanitizer.cleanText(request.getName()));
+        admin.setAdminId(InputSanitizer.cleanText(request.getAdminId()));
+        admin.setDepartment(InputSanitizer.cleanText(request.getDepartment()));
+        admin.setEmail(InputSanitizer.normalizeEmail(request.getEmail()));
+        admin.setPhone(InputSanitizer.cleanText(request.getPhone()));
+        admin.setAddress(InputSanitizer.cleanText(request.getAddress()));
 
         return toResponse(adminUserRepository.save(admin));
     }

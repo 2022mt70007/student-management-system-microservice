@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sms-common-config
+  namespace: sms
+data:
+  # Kubernetes DNS name for Eureka
+  EUREKA_HOST: "eureka-server"
+  DB_PORT: "5432"
+  DB_USER: "sms_user"
+  # Use Cloud SQL private IP, or 127.0.0.1 when using Cloud SQL Auth Proxy sidecar
+  DB_HOST: "127.0.0.1"
+  REGISTRATION_BASE_URL: "https://app.yourdomain.com/register"
+  MAIL_HOST: "smtp.sendgrid.net"
+  MAIL_PORT: "587"
+  MAIL_FROM: "noreply@yourdomain.com"
+  # API Gateway CORS — comma-separated origins
+  ALLOWED_ORIGINS: "https://app.yourdomain.com"
+  SPRING_PROFILES_ACTIVE: "prod"

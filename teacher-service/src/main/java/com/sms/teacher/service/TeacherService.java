@@ -2,6 +2,7 @@ package com.sms.teacher.service;
 
 import com.sms.common.dto.*;
 import com.sms.common.enums.RegistrationStatus;
+import com.sms.common.security.InputSanitizer;
 import com.sms.teacher.client.CourseClient;
 import com.sms.teacher.client.NotificationClient;
 import com.sms.teacher.client.StudentClient;
@@ -24,18 +25,19 @@ public class TeacherService {
 
     @Transactional
     public TeacherResponse create(TeacherRequest request) {
-        if (teacherRepository.existsByEmail(request.getEmail())) {
+        String email = InputSanitizer.normalizeEmail(request.getEmail());
+        if (teacherRepository.existsByEmail(email)) {
             throw new IllegalArgumentException("Teacher with this email already exists");
         }
 
         Teacher teacher = Teacher.builder()
-                .name(request.getName())
-                .teacherId(request.getTeacherId())
-                .department(request.getDepartment())
-                .email(request.getEmail())
-                .phone(request.getPhone())
-                .address(request.getAddress())
-                .subjects(request.getSubjects() != null ? request.getSubjects() : List.of())
+                .name(InputSanitizer.cleanText(request.getName()))
+                .teacherId(InputSanitizer.cleanText(request.getTeacherId()))
+                .department(InputSanitizer.cleanText(request.getDepartment()))
+                .email(email)
+                .phone(InputSanitizer.cleanText(request.getPhone()))
+                .address(InputSanitizer.cleanText(request.getAddress()))
+                .subjects(InputSanitizer.cleanList(request.getSubjects()))
                 .status(RegistrationStatus.PENDING_REGISTRATION)
                 .build();
 
@@ -47,13 +49,13 @@ public class TeacherService {
         Teacher teacher = teacherRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Teacher not found"));
 
-        teacher.setName(request.getName());
-        teacher.setTeacherId(request.getTeacherId());
-        teacher.setDepartment(request.getDepartment());
-        teacher.setEmail(request.getEmail());
-        teacher.setPhone(request.getPhone());
-        teacher.setAddress(request.getAddress());
-        teacher.setSubjects(request.getSubjects() != null ? request.getSubjects() : List.of());
+        teacher.setName(InputSanitizer.cleanText(request.getName()));
+        teacher.setTeacherId(InputSanitizer.cleanText(request.getTeacherId()));
+        teacher.setDepartment(InputSanitizer.cleanText(request.getDepartment()));
+        teacher.setEmail(InputSanitizer.normalizeEmail(request.getEmail()));
+        teacher.setPhone(InputSanitizer.cleanText(request.getPhone()));
+        teacher.setAddress(InputSanitizer.cleanText(request.getAddress()));
+        teacher.setSubjects(InputSanitizer.cleanList(request.getSubjects()));
 
         return toResponse(teacherRepository.save(teacher));
     }
