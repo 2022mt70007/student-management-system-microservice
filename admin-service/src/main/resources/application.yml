@@ -27,6 +27,8 @@ spring:
 app:
   mail:
     from: ${MAIL_FROM:noreply@sms.local}
+  bootstrap:
+    admin-email: ${BOOTSTRAP_ADMIN_EMAIL:${MAIL_FROM:}}
 
 eureka:
   client:

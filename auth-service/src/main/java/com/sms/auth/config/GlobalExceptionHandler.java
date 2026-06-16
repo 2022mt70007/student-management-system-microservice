@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import com.sms.common.dto.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -47,6 +48,17 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Map<String, Object>>> handleIllegalArgument(
             IllegalArgumentException ex, HttpServletRequest request) {
         return ResponseEntity.badRequest().body(ApiResponse.error(ex.getMessage(),
+                buildErrorDetails("BAD_REQUEST", request.getRequestURI(), null)));
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ApiResponse<Map<String, Object>>> handleDataIntegrity(
+            DataIntegrityViolationException ex, HttpServletRequest request) {
+        String message = "A record with this email already exists.";
+        if (ex.getMessage() != null && ex.getMessage().contains("registration_invitations")) {
+            message = "A registration invitation already exists for this email.";
+        }
+        return ResponseEntity.badRequest().body(ApiResponse.error(message,
                 buildErrorDetails("BAD_REQUEST", request.getRequestURI(), null)));
     }
 

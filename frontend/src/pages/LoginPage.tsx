@@ -6,7 +6,7 @@ import { roleHomePath, useAuth } from '../context/AuthContext';
 export function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
-  const [email, setEmail] = useState('admin@sms.local');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -59,7 +59,7 @@ export function LoginPage() {
           </button>
         </form>
         <p className="auth-footer">
-          Have a registration code? <Link to="/register">Complete registration</Link>
+          New admin? <Link to="/register">Complete registration</Link> with the code from your email first, then sign in here.
         </p>
       </div>
     </div>

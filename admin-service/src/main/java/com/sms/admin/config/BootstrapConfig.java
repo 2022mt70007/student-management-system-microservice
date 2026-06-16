@@ -6,9 +6,11 @@ import com.sms.common.dto.AdminUserRequest;
 import com.sms.common.enums.RegistrationStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 @Component
 @RequiredArgsConstructor
@@ -21,17 +23,27 @@ public class BootstrapConfig {
     private final AdminUserRepository adminUserRepository;
     private final AdminProfileService adminProfileService;
 
+    @Value("${app.bootstrap.admin-email:}")
+    private String bootstrapAdminEmail;
+
     @EventListener(ApplicationReadyEvent.class)
     public void seedBootstrapAdmin() {
         if (adminUserRepository.count() > 0) {
             return;
         }
 
+        if (!StringUtils.hasText(bootstrapAdminEmail)) {
+            log.warn("Skipping bootstrap admin seed: set BOOTSTRAP_ADMIN_EMAIL or MAIL_FROM to a SES-verified address.");
+            return;
+        }
+
+        String email = bootstrapAdminEmail.trim().toLowerCase();
+
         AdminUserRequest request = new AdminUserRequest();
         request.setName("System Admin");
         request.setAdminId("ADM001");
         request.setDepartment("Administration");
-        request.setEmail("admin@sms.local");
+        request.setEmail(email);
         request.setPhone("0000000000");
         request.setAddress("Head Office");
 
@@ -40,12 +52,12 @@ public class BootstrapConfig {
                 log.info("Seeding bootstrap admin user (attempt {}/{})", attempt, MAX_ATTEMPTS);
                 adminProfileService.create(request);
 
-                adminUserRepository.findByEmail("admin@sms.local").ifPresent(admin -> {
+                adminUserRepository.findByEmail(email).ifPresent(admin -> {
                     admin.setStatus(RegistrationStatus.PENDING_REGISTRATION);
                     adminUserRepository.save(admin);
                 });
 
-                log.info("Bootstrap admin created for admin@sms.local. Check MailHog or logs for registration code.");
+                log.info("Bootstrap admin created for {}. Check email or logs for registration code.", email);
                 return;
             } catch (Exception ex) {
                 log.warn("Bootstrap admin seed failed (attempt {}/{}): {}", attempt, MAX_ATTEMPTS, ex.getMessage());

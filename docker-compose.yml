@@ -62,8 +62,8 @@ services:
       DB_USER: sms_user
       DB_PASSWORD: sms_pass
       EUREKA_HOST: eureka-server
-      JWT_SECRET: StudentManagementSystemSecretKeyForJWT2024MustBeLongEnough
-      REGISTRATION_BASE_URL: http://localhost:5173/register
+      JWT_SECRET: ${JWT_SECRET:-StudentManagementSystemSecretKeyForJWT2024MustBeLongEnough}
+      REGISTRATION_BASE_URL: ${REGISTRATION_BASE_URL:-http://localhost:5173/register}
     ports:
       - "8081:8081"
     restart: unless-stopped
@@ -204,6 +204,7 @@ services:
       SPRING_MAIL_PASSWORD: ${SES_SMTP_PASSWORD:?Set SES_SMTP_PASSWORD in .env}
       MAIL_SMTP_AUTH: "true"
       MAIL_SMTP_STARTTLS: "true"
+      BOOTSTRAP_ADMIN_EMAIL: ${BOOTSTRAP_ADMIN_EMAIL:-${MAIL_FROM}}
       APP_ENCRYPTION_KEY: ${APP_ENCRYPTION_KEY:-LocalDevEncryptionKeyChangeInProd}
     ports:
       - "8082:8082"
@@ -232,7 +233,8 @@ services:
         condition: service_started
     environment:
       EUREKA_HOST: eureka-server
-      JWT_SECRET: StudentManagementSystemSecretKeyForJWT2024MustBeLongEnough
+      JWT_SECRET: ${JWT_SECRET:-StudentManagementSystemSecretKeyForJWT2024MustBeLongEnough}
+      APP_SECURITY_ALLOWED_ORIGINS: ${APP_SECURITY_ALLOWED_ORIGINS:-http://localhost:5173,http://127.0.0.1:5173}
     ports:
       - "8080:8080"
     restart: unless-stopped
