@@ -137,8 +137,40 @@ export interface StudentProgressResponse {
   progressPercent: number;
 }
 
+export type AssignmentPriorityStatus = 'OVERDUE' | 'DUE_SOON' | 'UPCOMING';
+export type ExamPriorityStatus = 'EXAM_SOON' | 'UPCOMING';
+
+export interface AssignmentResponse {
+  id: number;
+  courseId: number;
+  title: string;
+  description?: string;
+  dueDate: string;
+  priorityStatus: AssignmentPriorityStatus;
+}
+
+export interface ExamResponse {
+  id: number;
+  courseId: number;
+  title: string;
+  description?: string;
+  scheduledDate: string;
+  priorityStatus: ExamPriorityStatus;
+}
+
+export interface StudentEnrolledCourseResponse {
+  id: number;
+  title: string;
+  description?: string;
+  department?: string;
+  instructor?: string;
+  credits?: number;
+  progressPercent: number;
+  assignments: AssignmentResponse[];
+  exams: ExamResponse[];
+}
+
 export interface StudentDashboardResponse {
-  courses: CourseResponse[];
   progress: StudentProgressResponse[];
   latestNotification?: NotificationResponse;
 }

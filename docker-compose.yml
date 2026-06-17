@@ -197,13 +197,13 @@ services:
       DB_USER: sms_user
       DB_PASSWORD: sms_pass
       EUREKA_HOST: eureka-server
-      MAIL_HOST: ${SES_MAIL_HOST:-email-smtp.ap-south-1.amazonaws.com}
-      MAIL_PORT: ${SES_MAIL_PORT:-587}
-      MAIL_FROM: ${MAIL_FROM:?Set MAIL_FROM in .env to your SES-verified email}
-      SPRING_MAIL_USERNAME: ${SES_SMTP_USERNAME:?Set SES_SMTP_USERNAME in .env}
-      SPRING_MAIL_PASSWORD: ${SES_SMTP_PASSWORD:?Set SES_SMTP_PASSWORD in .env}
-      MAIL_SMTP_AUTH: "true"
-      MAIL_SMTP_STARTTLS: "true"
+      MAIL_HOST: ${MAIL_HOST:-${SES_MAIL_HOST:-mailhog}}
+      MAIL_PORT: ${MAIL_PORT:-${SES_MAIL_PORT:-1025}}
+      MAIL_FROM: ${MAIL_FROM:-noreply@sms.local}
+      SPRING_MAIL_USERNAME: ${SES_SMTP_USERNAME:-}
+      SPRING_MAIL_PASSWORD: ${SES_SMTP_PASSWORD:-}
+      MAIL_SMTP_AUTH: ${MAIL_SMTP_AUTH:-false}
+      MAIL_SMTP_STARTTLS: ${MAIL_SMTP_STARTTLS:-false}
       BOOTSTRAP_ADMIN_EMAIL: ${BOOTSTRAP_ADMIN_EMAIL:-${MAIL_FROM}}
       APP_ENCRYPTION_KEY: ${APP_ENCRYPTION_KEY:-LocalDevEncryptionKeyChangeInProd}
     ports:
