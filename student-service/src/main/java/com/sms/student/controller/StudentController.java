@@ -31,6 +31,30 @@ public class StudentController {
         return ResponseEntity.ok(ApiResponse.ok(studentService.findById(profileId)));
     }
 
+    @GetMapping("/api/students/courses")
+    @Operation(summary = "Enrolled courses with assignments and exams for the current student")
+    public ResponseEntity<ApiResponse<List<StudentEnrolledCourseResponse>>> enrolledCourses(
+            @RequestHeader("X-Profile-Id") Long profileId) {
+        studentService.seedProgressIfEmpty(profileId);
+        return ResponseEntity.ok(ApiResponse.ok(studentService.getEnrolledCourses(profileId)));
+    }
+
+    @GetMapping("/api/students/courses/{courseId}/assignments")
+    @Operation(summary = "Assignments for an enrolled course")
+    public ResponseEntity<ApiResponse<List<AssignmentResponse>>> courseAssignments(
+            @RequestHeader("X-Profile-Id") Long profileId,
+            @PathVariable Long courseId) {
+        return ResponseEntity.ok(ApiResponse.ok(studentService.getCourseAssignments(profileId, courseId)));
+    }
+
+    @GetMapping("/api/students/courses/{courseId}/exams")
+    @Operation(summary = "Exams for an enrolled course")
+    public ResponseEntity<ApiResponse<List<ExamResponse>>> courseExams(
+            @RequestHeader("X-Profile-Id") Long profileId,
+            @PathVariable Long courseId) {
+        return ResponseEntity.ok(ApiResponse.ok(studentService.getCourseExams(profileId, courseId)));
+    }
+
     @PostMapping("/api/students/internal")
     public ResponseEntity<ApiResponse<StudentResponse>> createInternal(@Valid @RequestBody StudentRequest request) {
         return ResponseEntity.ok(ApiResponse.ok(studentService.create(request)));

@@ -1,8 +1,11 @@
 package com.sms.admin.service;
 
 import com.sms.admin.client.*;
+import com.sms.admin.exception.EmailDeliveryException;
 import com.sms.common.dto.*;
 import com.sms.common.enums.UserRole;
+import com.sms.common.security.EmailValidator;
+import com.sms.common.security.InputSanitizer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -23,6 +26,7 @@ public class AdminOrchestrationService {
     private final EmailService emailService;
 
     public StudentResponse createStudent(StudentRequest request) {
+        EmailValidator.assertDeliverableRegistrationEmail(InputSanitizer.normalizeEmail(request.getEmail()));
         StudentResponse student = studentClient.create(request).getData();
 
         CreateInvitationRequest invitationRequest = new CreateInvitationRequest();
@@ -31,7 +35,7 @@ public class AdminOrchestrationService {
         invitationRequest.setProfileId(student.getId());
 
         InvitationResponse invitation = authClient.createInvitation(invitationRequest).getData();
-        emailService.sendRegistrationEmail(student.getEmail(), student.getName(), UserRole.STUDENT, invitation);
+        sendRegistrationEmailOrExplain(student.getEmail(), student.getName(), UserRole.STUDENT, invitation);
 
         return student;
     }
@@ -49,6 +53,7 @@ public class AdminOrchestrationService {
     }
 
     public TeacherResponse createTeacher(TeacherRequest request) {
+        EmailValidator.assertDeliverableRegistrationEmail(InputSanitizer.normalizeEmail(request.getEmail()));
         TeacherResponse teacher = teacherClient.create(request).getData();
 
         CreateInvitationRequest invitationRequest = new CreateInvitationRequest();
@@ -57,9 +62,20 @@ public class AdminOrchestrationService {
         invitationRequest.setProfileId(teacher.getId());
 
         InvitationResponse invitation = authClient.createInvitation(invitationRequest).getData();
-        emailService.sendRegistrationEmail(teacher.getEmail(), teacher.getName(), UserRole.TEACHER, invitation);
+        sendRegistrationEmailOrExplain(teacher.getEmail(), teacher.getName(), UserRole.TEACHER, invitation);
 
         return teacher;
+    }
+
+    private void sendRegistrationEmailOrExplain(
+            String email, String name, UserRole role, InvitationResponse invitation) {
+        try {
+            emailService.sendRegistrationEmail(email, name, role, invitation);
+        } catch (EmailDeliveryException ex) {
+            throw new IllegalArgumentException(ex.getMessage()
+                    + " User was created. Registration code: " + invitation.getRegistrationCode()
+                    + " (share manually).");
+        }
     }
 
     public TeacherResponse updateTeacher(Long id, TeacherRequest request) {

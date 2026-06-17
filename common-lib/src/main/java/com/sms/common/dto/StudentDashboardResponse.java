@@ -12,7 +12,6 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class StudentDashboardResponse {
-    private List<CourseResponse> courses;
     private List<StudentProgressResponse> progress;
     private NotificationResponse latestNotification;
 }

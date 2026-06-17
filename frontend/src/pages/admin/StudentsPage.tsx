@@ -81,7 +81,7 @@ export function StudentsPage() {
         setMessage('Student updated');
       } else {
         const res = await createStudent(payload);
-        setMessage(res.message || 'Student created. Check MailHog for registration email.');
+        setMessage(res.message || 'Student created. Registration email sent.');
       }
       setModalOpen(false);
       await load();

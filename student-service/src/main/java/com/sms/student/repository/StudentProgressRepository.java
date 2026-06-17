@@ -7,4 +7,6 @@ import java.util.List;
 
 public interface StudentProgressRepository extends JpaRepository<StudentProgress, Long> {
     List<StudentProgress> findByStudentId(Long studentId);
+
+    boolean existsByStudentIdAndCourseId(Long studentId, Long courseId);
 }

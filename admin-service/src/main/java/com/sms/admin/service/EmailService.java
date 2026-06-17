@@ -1,5 +1,6 @@
 package com.sms.admin.service;
 
+import com.sms.admin.exception.EmailDeliveryException;
 import com.sms.common.dto.InvitationResponse;
 import com.sms.common.enums.UserRole;
 import lombok.RequiredArgsConstructor;
@@ -49,9 +50,40 @@ public class EmailService {
             mailSender.send(message);
             log.info("Registration email sent to {}", to);
         } catch (Exception ex) {
+            String friendlyMessage = toFriendlyEmailError(to, ex);
             log.warn("Failed to send email to {}. Registration link: {}, code: {}. Reason: {}",
                     to, invitation.getRegistrationLink(), invitation.getRegistrationCode(), ex.getMessage());
             log.info("Email body:\n{}", body);
+            throw new EmailDeliveryException(friendlyMessage, ex);
         }
+    }
+
+    private String toFriendlyEmailError(String recipient, Exception ex) {
+        String raw = ex.getMessage() == null ? "" : ex.getMessage().toLowerCase();
+
+        if (raw.contains("not verified")) {
+            if (raw.contains(fromEmail.toLowerCase())) {
+                return "Sender email '" + fromEmail + "' is not verified in AWS SES. "
+                        + "Verify it under SES → Verified identities.";
+            }
+            return "Recipient email '" + recipient + "' is not verified in AWS SES. "
+                    + "In sandbox mode, verify this address in SES before creating the user.";
+        }
+
+        if (raw.contains("invalid") && (raw.contains("address") || raw.contains("recipient"))) {
+            return "Invalid recipient email '" + recipient + "'. Check the address and try again.";
+        }
+
+        if (raw.contains("authentication failed")) {
+            return "Email service authentication failed. Check SMTP credentials and region configuration.";
+        }
+
+        if (raw.contains("message rejected")) {
+            return "Email provider rejected the message to '" + recipient + "'. "
+                    + "Ensure the address is valid and verified in AWS SES.";
+        }
+
+        return "Could not send registration email to '" + recipient + "'. "
+                + "Use a valid email verified in AWS SES.";
     }
 }

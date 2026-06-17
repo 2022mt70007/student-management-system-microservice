@@ -26,7 +26,11 @@ COPY teacher-service teacher-service
 COPY course-service course-service
 COPY notification-service notification-service
 
-RUN mvn clean package -B -pl "${MODULE}" -am -DskipTests
+RUN for attempt in 1 2 3; do \
+      mvn clean package -B -pl "${MODULE}" -am -DskipTests && exit 0; \
+      echo "Maven build failed (attempt ${attempt}/3), retrying..."; \
+      sleep 15; \
+    done; exit 1
 
 FROM eclipse-temurin:17-jre-alpine
 ARG MODULE

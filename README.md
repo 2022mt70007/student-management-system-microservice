@@ -39,7 +39,9 @@ Client → API Gateway (8080, JWT) → Eureka (8761)
 
 > **Detailed local setup guide:** see [docs/LOCAL_SETUP.md](docs/LOCAL_SETUP.md) for step-by-step instructions (Docker, IntelliJ, troubleshooting).  
 > **Production deployment:** see [docs/PRODUCTION_DEPLOYMENT.md](docs/PRODUCTION_DEPLOYMENT.md) for infrastructure, security, monitoring, scaling, and go-live checklist.  
-> **GCP deployment:** see [docs/GCP_DEPLOYMENT.md](docs/GCP_DEPLOYMENT.md) for GKE, Cloud SQL, Secret Manager, Cloud Build, and IAM setup.
+> **GCP deployment:** see [docs/GCP_DEPLOYMENT.md](docs/GCP_DEPLOYMENT.md) for GKE, Cloud SQL, Secret Manager, Cloud Build, and IAM setup.  
+> **Architecture diagrams:** see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for Mermaid diagrams (render at [mermaid.live](https://mermaid.live)).  
+> **Go live on GCP (M.Tech demo):** see [docs/MTECH_GCP_VM_DEPLOYMENT.md](docs/MTECH_GCP_VM_DEPLOYMENT.md) — VM + Docker Compose, no domain required.
 
 ```bash
 docker compose up --build

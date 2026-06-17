@@ -6,6 +6,8 @@ import com.sms.admin.repository.AdminUserRepository;
 import com.sms.common.dto.*;
 import com.sms.common.enums.RegistrationStatus;
 import com.sms.common.enums.UserRole;
+import com.sms.admin.exception.EmailDeliveryException;
+import com.sms.common.security.EmailValidator;
 import com.sms.common.security.InputSanitizer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,6 +26,7 @@ public class AdminProfileService {
     @Transactional
     public AdminUserResponse create(AdminUserRequest request) {
         String email = InputSanitizer.normalizeEmail(request.getEmail());
+        EmailValidator.assertDeliverableRegistrationEmail(email);
         if (adminUserRepository.existsByEmail(email)) {
             throw new IllegalArgumentException("Admin with this email already exists");
         }
@@ -46,7 +49,13 @@ public class AdminProfileService {
         invitationRequest.setProfileId(admin.getId());
 
         InvitationResponse invitation = authClient.createInvitation(invitationRequest).getData();
-        emailService.sendRegistrationEmail(admin.getEmail(), admin.getName(), UserRole.ADMIN, invitation);
+        try {
+            emailService.sendRegistrationEmail(admin.getEmail(), admin.getName(), UserRole.ADMIN, invitation);
+        } catch (EmailDeliveryException ex) {
+            throw new IllegalArgumentException(ex.getMessage()
+                    + " Admin profile was created. Registration code: " + invitation.getRegistrationCode()
+                    + " (share manually).");
+        }
 
         return toResponse(admin);
     }

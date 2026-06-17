@@ -146,7 +146,57 @@ button,input,select,textarea { font: inherit; }
 }
 .badge-success { background: #dcfce7; color: #166534; }
 .badge-warning { background: #fef3c7; color: #92400e; }
+.badge-danger { background: #fee2e2; color: #991b1b; }
 .badge-muted { background: #e2e8f0; color: #475569; }
+
+.tab-bar {
+  display: flex; gap: 8px; margin-bottom: 24px;
+  border-bottom: 1px solid var(--border); padding-bottom: 0;
+}
+.tab-btn {
+  background: none; border: none; border-bottom: 3px solid transparent;
+  padding: 12px 18px; cursor: pointer; font-weight: 600; color: var(--muted);
+  margin-bottom: -1px; transition: color 0.15s, border-color 0.15s;
+}
+.tab-btn:hover { color: var(--text); }
+.tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+.course-list { display: flex; flex-direction: column; gap: 20px; }
+.course-card {
+  background: var(--surface); border-radius: var(--radius); padding: 24px;
+  box-shadow: var(--shadow);
+}
+.course-card-header {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  gap: 16px; margin-bottom: 12px;
+}
+.course-card h3 { font-size: 1.2rem; margin-bottom: 6px; }
+.course-meta { color: var(--muted); font-size: 0.9rem; }
+.course-description { color: var(--muted); margin-bottom: 20px; line-height: 1.6; }
+.course-progress-pill {
+  flex-shrink: 0; background: #dbeafe; color: #1e40af;
+  padding: 6px 12px; border-radius: 999px; font-size: 0.8rem; font-weight: 700;
+}
+.course-section { margin-top: 20px; }
+.course-section h4 {
+  font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.04em;
+  color: var(--muted); margin-bottom: 12px;
+}
+.task-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px; }
+.task-item {
+  display: flex; justify-content: space-between; align-items: flex-start; gap: 16px;
+  padding: 14px 16px; border-radius: 10px; border: 1px solid var(--border);
+  background: #f8fafc;
+}
+.task-item-main p { margin-top: 6px; color: var(--muted); font-size: 0.9rem; }
+.task-item-meta {
+  display: flex; flex-direction: column; align-items: flex-end; gap: 8px;
+  flex-shrink: 0; text-align: right;
+}
+.task-item-meta time { font-size: 0.85rem; color: var(--muted); white-space: nowrap; }
+.task-item.task-overdue { border-left: 4px solid var(--danger); background: #fff5f5; }
+.task-item.task-due_soon { border-left: 4px solid #f59e0b; background: #fffbeb; }
+.task-item.task-exam_soon { border-left: 4px solid #f59e0b; background: #fffbeb; }
 
 .modal-backdrop {
   position: fixed; inset: 0; background: rgba(15, 23, 42, 0.45);
