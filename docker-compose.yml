@@ -135,6 +135,7 @@ services:
       DB_USER: sms_user
       DB_PASSWORD: sms_pass
       EUREKA_HOST: eureka-server
+      APP_ENCRYPTION_KEY: ${APP_ENCRYPTION_KEY:-LocalDevEncryptionKeyChangeInProd}
     ports:
       - "8083:8083"
 
@@ -163,6 +164,7 @@ services:
       DB_USER: sms_user
       DB_PASSWORD: sms_pass
       EUREKA_HOST: eureka-server
+      APP_ENCRYPTION_KEY: ${APP_ENCRYPTION_KEY:-LocalDevEncryptionKeyChangeInProd}
     ports:
       - "8084:8084"
 
@@ -188,8 +190,6 @@ services:
         condition: service_started
       notification-service:
         condition: service_started
-      mailhog:
-        condition: service_started
     environment:
       DB_HOST: postgres
       DB_PORT: 5432
@@ -197,8 +197,14 @@ services:
       DB_USER: sms_user
       DB_PASSWORD: sms_pass
       EUREKA_HOST: eureka-server
-      MAIL_HOST: mailhog
-      MAIL_PORT: 1025
+      MAIL_HOST: ${SES_MAIL_HOST:-email-smtp.ap-south-1.amazonaws.com}
+      MAIL_PORT: ${SES_MAIL_PORT:-587}
+      MAIL_FROM: ${MAIL_FROM:?Set MAIL_FROM in .env to your SES-verified email}
+      SPRING_MAIL_USERNAME: ${SES_SMTP_USERNAME:?Set SES_SMTP_USERNAME in .env}
+      SPRING_MAIL_PASSWORD: ${SES_SMTP_PASSWORD:?Set SES_SMTP_PASSWORD in .env}
+      MAIL_SMTP_AUTH: "true"
+      MAIL_SMTP_STARTTLS: "true"
+      APP_ENCRYPTION_KEY: ${APP_ENCRYPTION_KEY:-LocalDevEncryptionKeyChangeInProd}
     ports:
       - "8082:8082"
 

@@ -2,6 +2,7 @@ package com.sms.student.service;
 
 import com.sms.common.dto.*;
 import com.sms.common.enums.RegistrationStatus;
+import com.sms.common.security.InputSanitizer;
 import com.sms.student.client.CourseClient;
 import com.sms.student.client.NotificationClient;
 import com.sms.student.entity.Student;
@@ -25,19 +26,20 @@ public class StudentService {
 
     @Transactional
     public StudentResponse create(StudentRequest request) {
-        if (studentRepository.existsByEmail(request.getEmail())) {
+        String email = InputSanitizer.normalizeEmail(request.getEmail());
+        if (studentRepository.existsByEmail(email)) {
             throw new IllegalArgumentException("Student with this email already exists");
         }
 
         Student student = Student.builder()
-                .name(request.getName())
-                .email(request.getEmail())
-                .phone(request.getPhone())
-                .address(request.getAddress())
-                .rollNumber(request.getRollNumber())
-                .className(request.getClassName())
-                .department(request.getDepartment())
-                .subjects(request.getSubjects() != null ? request.getSubjects() : List.of())
+                .name(InputSanitizer.cleanText(request.getName()))
+                .email(email)
+                .phone(InputSanitizer.cleanText(request.getPhone()))
+                .address(InputSanitizer.cleanText(request.getAddress()))
+                .rollNumber(InputSanitizer.cleanText(request.getRollNumber()))
+                .className(InputSanitizer.cleanText(request.getClassName()))
+                .department(InputSanitizer.cleanText(request.getDepartment()))
+                .subjects(InputSanitizer.cleanList(request.getSubjects()))
                 .status(RegistrationStatus.PENDING_REGISTRATION)
                 .build();
 
@@ -49,14 +51,14 @@ public class StudentService {
         Student student = studentRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Student not found"));
 
-        student.setName(request.getName());
-        student.setEmail(request.getEmail());
-        student.setPhone(request.getPhone());
-        student.setAddress(request.getAddress());
-        student.setRollNumber(request.getRollNumber());
-        student.setClassName(request.getClassName());
-        student.setDepartment(request.getDepartment());
-        student.setSubjects(request.getSubjects() != null ? request.getSubjects() : List.of());
+        student.setName(InputSanitizer.cleanText(request.getName()));
+        student.setEmail(InputSanitizer.normalizeEmail(request.getEmail()));
+        student.setPhone(InputSanitizer.cleanText(request.getPhone()));
+        student.setAddress(InputSanitizer.cleanText(request.getAddress()));
+        student.setRollNumber(InputSanitizer.cleanText(request.getRollNumber()));
+        student.setClassName(InputSanitizer.cleanText(request.getClassName()));
+        student.setDepartment(InputSanitizer.cleanText(request.getDepartment()));
+        student.setSubjects(InputSanitizer.cleanList(request.getSubjects()));
 
         return toResponse(studentRepository.save(student));
     }

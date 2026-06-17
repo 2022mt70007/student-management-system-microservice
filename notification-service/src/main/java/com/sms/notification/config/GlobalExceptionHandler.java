@@ -1,4 +1,4 @@
-package com.sms.student.config;
+package com.sms.notification.config;
 
 import com.sms.common.dto.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;

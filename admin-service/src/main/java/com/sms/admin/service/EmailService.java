@@ -16,7 +16,7 @@ public class EmailService {
 
     private final JavaMailSender mailSender;
 
-    @Value("${spring.mail.username:noreply@sms.local}")
+    @Value("${app.mail.from:noreply@sms.local}")
     private String fromEmail;
 
     public void sendRegistrationEmail(String to, String name, UserRole role, InvitationResponse invitation) {
@@ -47,9 +47,10 @@ public class EmailService {
             message.setSubject(subject);
             message.setText(body);
             mailSender.send(message);
+            log.info("Registration email sent to {}", to);
         } catch (Exception ex) {
-            log.warn("Failed to send email to {}. Registration link: {}, code: {}",
-                    to, invitation.getRegistrationLink(), invitation.getRegistrationCode());
+            log.warn("Failed to send email to {}. Registration link: {}, code: {}. Reason: {}",
+                    to, invitation.getRegistrationLink(), invitation.getRegistrationCode(), ex.getMessage());
             log.info("Email body:\n{}", body);
         }
     }

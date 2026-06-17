@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.util.Set;
 import java.util.List;
 
 @Component
@@ -54,9 +55,15 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
         }
 
         Claims claims = JwtUtil.parseToken(jwtSecret, token);
+        String role = String.valueOf(claims.get("role"));
+        if (!isRoleAllowed(path, role)) {
+            exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
+            return exchange.getResponse().setComplete();
+        }
+
         ServerHttpRequest mutatedRequest = exchange.getRequest().mutate()
                 .header("X-User-Email", claims.getSubject())
-                .header("X-User-Role", String.valueOf(claims.get("role")))
+                .header("X-User-Role", role)
                 .header("X-Profile-Id", String.valueOf(claims.get("profileId")))
                 .build();
 
@@ -65,6 +72,25 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
 
     private boolean isPublicPath(String path) {
         return PUBLIC_PATHS.stream().anyMatch(path::startsWith);
+    }
+
+    private boolean isRoleAllowed(String path, String role) {
+        if (path.startsWith("/api/admin/")) {
+            return "ADMIN".equals(role);
+        }
+        if (path.startsWith("/api/auth/invitations")) {
+            return "ADMIN".equals(role);
+        }
+        if (path.startsWith("/api/students/")) {
+            return Set.of("STUDENT", "ADMIN").contains(role);
+        }
+        if (path.startsWith("/api/teachers/")) {
+            return Set.of("TEACHER", "ADMIN").contains(role);
+        }
+        if (path.startsWith("/api/courses/") || path.startsWith("/api/notifications/")) {
+            return Set.of("ADMIN", "TEACHER", "STUDENT").contains(role);
+        }
+        return true;
     }
 
     @Override

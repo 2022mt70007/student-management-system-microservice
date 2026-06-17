@@ -29,6 +29,11 @@ app:
   registration:
     base-url: ${REGISTRATION_BASE_URL:http://localhost:3000/register}
     code-expiry-days: 7
+  security:
+    max-failed-login-attempts: 5
+    account-lock-minutes: 15
+    max-verification-attempts: 8
+    verification-lock-minutes: 30
 
 springdoc:
   api-docs:

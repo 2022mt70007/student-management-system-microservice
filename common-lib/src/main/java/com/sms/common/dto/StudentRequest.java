@@ -1,8 +1,9 @@
 package com.sms.common.dto;
 
-import com.sms.common.enums.RegistrationStatus;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 import java.util.List;
@@ -10,16 +11,23 @@ import java.util.List;
 @Data
 public class StudentRequest {
     @NotBlank
+    @Size(max = 100)
     private String name;
 
     @NotBlank
     @Email
+    @Size(max = 120)
     private String email;
 
+    @Pattern(regexp = "^$|^[+]?\\d{10,15}$", message = "Phone must be 10-15 digits")
     private String phone;
+    @Size(max = 255)
     private String address;
+    @Size(max = 30)
     private String rollNumber;
+    @Size(max = 30)
     private String className;
+    @Size(max = 80)
     private String department;
-    private List<String> subjects;
+    private List<@NotBlank @Size(max = 80) String> subjects;
 }

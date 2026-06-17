@@ -39,5 +39,9 @@
             <artifactId>lombok</artifactId>
             <optional>true</optional>
         </dependency>
+        <dependency>
+            <groupId>jakarta.persistence</groupId>
+            <artifactId>jakarta.persistence-api</artifactId>
+        </dependency>
     </dependencies>
 </project>

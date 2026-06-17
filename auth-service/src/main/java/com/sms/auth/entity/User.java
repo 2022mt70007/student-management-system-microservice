@@ -3,6 +3,7 @@ package com.sms.auth.entity;
 import com.sms.common.enums.UserRole;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.ColumnDefault;
 
 import java.time.LocalDateTime;
 
@@ -32,6 +33,13 @@ public class User {
 
     @Builder.Default
     private boolean enabled = false;
+
+    @Column(nullable = false)
+    @ColumnDefault("0")
+    @Builder.Default
+    private int failedLoginAttempts = 0;
+
+    private LocalDateTime accountLockedUntil;
 
     private LocalDateTime createdAt;
 }
