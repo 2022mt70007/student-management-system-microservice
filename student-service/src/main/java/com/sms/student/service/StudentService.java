@@ -3,6 +3,7 @@ package com.sms.student.service;
 import com.sms.common.dto.*;
 import com.sms.common.enums.RegistrationStatus;
 import com.sms.common.security.InputSanitizer;
+import com.sms.student.client.AcademicClient;
 import com.sms.student.client.CourseClient;
 import com.sms.student.client.NotificationClient;
 import com.sms.student.entity.Assignment;
@@ -33,6 +34,7 @@ public class StudentService {
     private final AssignmentRepository assignmentRepository;
     private final ExamRepository examRepository;
     private final CourseClient courseClient;
+    private final AcademicClient academicClient;
     private final NotificationClient notificationClient;
 
     @Transactional
@@ -42,15 +44,20 @@ public class StudentService {
             throw new IllegalArgumentException("Student with this email already exists");
         }
 
+        AcademicSelectionResponse selection = resolveAcademicSelection(request);
+
         Student student = Student.builder()
                 .name(InputSanitizer.cleanText(request.getName()))
                 .email(email)
                 .phone(InputSanitizer.cleanText(request.getPhone()))
                 .address(InputSanitizer.cleanText(request.getAddress()))
                 .rollNumber(InputSanitizer.cleanText(request.getRollNumber()))
-                .className(InputSanitizer.cleanText(request.getClassName()))
-                .department(InputSanitizer.cleanText(request.getDepartment()))
-                .subjects(InputSanitizer.cleanList(request.getSubjects()))
+                .departmentId(selection.getDepartmentId())
+                .departmentName(selection.getDepartmentName())
+                .classId(selection.getClassId())
+                .className(selection.getClassName())
+                .subjectIds(new ArrayList<>(selection.getSubjectIds()))
+                .subjectNames(new ArrayList<>(selection.getSubjectNames()))
                 .status(RegistrationStatus.PENDING_REGISTRATION)
                 .build();
 
@@ -62,14 +69,19 @@ public class StudentService {
         Student student = studentRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Student not found"));
 
+        AcademicSelectionResponse selection = resolveAcademicSelection(request);
+
         student.setName(InputSanitizer.cleanText(request.getName()));
         student.setEmail(InputSanitizer.normalizeEmail(request.getEmail()));
         student.setPhone(InputSanitizer.cleanText(request.getPhone()));
         student.setAddress(InputSanitizer.cleanText(request.getAddress()));
         student.setRollNumber(InputSanitizer.cleanText(request.getRollNumber()));
-        student.setClassName(InputSanitizer.cleanText(request.getClassName()));
-        student.setDepartment(InputSanitizer.cleanText(request.getDepartment()));
-        student.setSubjects(InputSanitizer.cleanList(request.getSubjects()));
+        student.setDepartmentId(selection.getDepartmentId());
+        student.setDepartmentName(selection.getDepartmentName());
+        student.setClassId(selection.getClassId());
+        student.setClassName(selection.getClassName());
+        student.setSubjectIds(new ArrayList<>(selection.getSubjectIds()));
+        student.setSubjectNames(new ArrayList<>(selection.getSubjectNames()));
 
         return toResponse(studentRepository.save(student));
     }
@@ -262,6 +274,14 @@ public class StudentService {
         return "UPCOMING";
     }
 
+    private AcademicSelectionResponse resolveAcademicSelection(StudentRequest request) {
+        AcademicSelectionRequest selectionRequest = new AcademicSelectionRequest();
+        selectionRequest.setDepartmentId(request.getDepartmentId());
+        selectionRequest.setClassId(request.getClassId());
+        selectionRequest.setSubjectIds(request.getSubjectIds());
+        return academicClient.validateSelection(selectionRequest).getData();
+    }
+
     private StudentResponse toResponse(Student student) {
         return StudentResponse.builder()
                 .id(student.getId())
@@ -270,9 +290,12 @@ public class StudentService {
                 .phone(student.getPhone())
                 .address(student.getAddress())
                 .rollNumber(student.getRollNumber())
+                .departmentId(student.getDepartmentId())
+                .departmentName(student.getDepartmentName())
+                .classId(student.getClassId())
                 .className(student.getClassName())
-                .department(student.getDepartment())
-                .subjects(student.getSubjects())
+                .subjectIds(student.getSubjectIds())
+                .subjectNames(student.getSubjectNames())
                 .status(student.getStatus())
                 .build();
     }

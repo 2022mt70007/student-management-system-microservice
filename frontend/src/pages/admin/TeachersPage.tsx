@@ -5,24 +5,25 @@ import {
   listTeachers,
   updateTeacher,
 } from '../../api/admin';
-import { DataTable, Modal, formatSubjects, parseSubjects } from '../../components/DataTable';
+import { AcademicFields } from '../../components/AcademicFields';
+import { DataTable, Modal } from '../../components/DataTable';
 import { Alert, LoadingSpinner, PageHeader, StatusBadge } from '../../components/ui';
 import type { TeacherRequest, TeacherResponse } from '../../types';
 
-const emptyForm: TeacherRequest = {
+const emptyForm: Omit<TeacherRequest, 'departmentId' | 'classId' | 'subjectIds'> = {
   name: '',
   teacherId: '',
   email: '',
-  department: '',
   phone: '',
   address: '',
-  subjects: [],
 };
 
 export function TeachersPage() {
   const [rows, setRows] = useState<TeacherResponse[]>([]);
-  const [form, setForm] = useState<TeacherRequest>(emptyForm);
-  const [subjectsText, setSubjectsText] = useState('');
+  const [form, setForm] = useState(emptyForm);
+  const [departmentId, setDepartmentId] = useState<number | ''>('');
+  const [classId, setClassId] = useState<number | ''>('');
+  const [subjectIds, setSubjectIds] = useState<number[]>([]);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -48,7 +49,9 @@ export function TeachersPage() {
   function openCreate() {
     setEditingId(null);
     setForm(emptyForm);
-    setSubjectsText('');
+    setDepartmentId('');
+    setClassId('');
+    setSubjectIds([]);
     setModalOpen(true);
   }
 
@@ -58,20 +61,29 @@ export function TeachersPage() {
       name: row.name,
       teacherId: row.teacherId,
       email: row.email,
-      department: row.department ?? '',
       phone: row.phone ?? '',
       address: row.address ?? '',
-      subjects: row.subjects ?? [],
     });
-    setSubjectsText(formatSubjects(row.subjects));
+    setDepartmentId(row.departmentId ?? '');
+    setClassId(row.classId ?? '');
+    setSubjectIds(row.subjectIds ?? []);
     setModalOpen(true);
   }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
+    if (!departmentId || !classId || subjectIds.length === 0) {
+      setError('Please select department, class, and at least one subject.');
+      return;
+    }
     setSaving(true);
     setError('');
-    const payload = { ...form, subjects: parseSubjects(subjectsText) };
+    const payload: TeacherRequest = {
+      ...form,
+      departmentId: Number(departmentId),
+      classId: Number(classId),
+      subjectIds,
+    };
     try {
       if (editingId) {
         await updateTeacher(editingId, payload);
@@ -124,7 +136,8 @@ export function TeachersPage() {
             { key: 'name', header: 'Name', render: (r) => r.name },
             { key: 'id', header: 'Teacher ID', render: (r) => r.teacherId },
             { key: 'email', header: 'Email', render: (r) => r.email },
-            { key: 'dept', header: 'Department', render: (r) => r.department ?? '—' },
+            { key: 'dept', header: 'Department', render: (r) => r.departmentName ?? '—' },
+            { key: 'class', header: 'Class', render: (r) => r.className ?? '—' },
             { key: 'status', header: 'Status', render: (r) => <StatusBadge status={r.status} /> },
           ]}
         />
@@ -135,10 +148,18 @@ export function TeachersPage() {
             <label>Name *<input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required /></label>
             <label>Teacher ID *<input value={form.teacherId} onChange={(e) => setForm({ ...form, teacherId: e.target.value })} required /></label>
             <label>Email *<input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required /></label>
-            <label>Department<input value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value })} /></label>
             <label>Phone<input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></label>
             <label className="full-width">Address<input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} /></label>
-            <label className="full-width">Subjects<input value={subjectsText} onChange={(e) => setSubjectsText(e.target.value)} /></label>
+            <div className="full-width">
+              <AcademicFields
+                departmentId={departmentId}
+                classId={classId}
+                subjectIds={subjectIds}
+                onDepartmentChange={setDepartmentId}
+                onClassChange={setClassId}
+                onSubjectIdsChange={setSubjectIds}
+              />
+            </div>
           </div>
           <div className="form-actions">
             <button type="button" className="btn btn-secondary" onClick={() => setModalOpen(false)}>Cancel</button>

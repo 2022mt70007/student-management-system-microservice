@@ -34,25 +34,79 @@ export interface SetPasswordRequest {
   password: string;
 }
 
+export type AcademicStatus = 'ACTIVE' | 'INACTIVE';
+
+export interface DepartmentRequest {
+  departmentCode: string;
+  departmentName: string;
+  description?: string;
+  status: AcademicStatus;
+}
+
+export interface DepartmentResponse {
+  id: number;
+  departmentCode: string;
+  departmentName: string;
+  description?: string;
+  status: AcademicStatus;
+}
+
+export interface AcademicClassRequest {
+  classCode: string;
+  className: string;
+  departmentId: number;
+  description?: string;
+}
+
+export interface AcademicClassResponse {
+  id: number;
+  classCode: string;
+  className: string;
+  departmentId: number;
+  departmentName?: string;
+  description?: string;
+}
+
+export interface SubjectRequest {
+  subjectCode: string;
+  subjectName: string;
+  classId: number;
+  credits?: number;
+  description?: string;
+}
+
+export interface SubjectResponse {
+  id: number;
+  subjectCode: string;
+  subjectName: string;
+  classId: number;
+  className?: string;
+  departmentId?: number;
+  departmentName?: string;
+  credits?: number;
+  description?: string;
+}
+
 export interface StudentRequest {
   name: string;
   email: string;
   phone?: string;
   address?: string;
   rollNumber?: string;
-  className?: string;
-  department?: string;
-  subjects?: string[];
+  departmentId: number;
+  classId: number;
+  subjectIds: number[];
 }
 
 export interface TeacherRequest {
   name: string;
   teacherId: string;
-  department?: string;
   email: string;
   phone?: string;
   address?: string;
-  subjects?: string[];
+  departmentId: number;
+  classId: number;
+  subjectIds: number[];
 }
 
 export interface AdminUserRequest {
@@ -85,9 +139,12 @@ export interface StudentResponse {
   phone?: string;
   address?: string;
   rollNumber?: string;
+  departmentId?: number;
+  departmentName?: string;
+  classId?: number;
   className?: string;
-  department?: string;
-  subjects?: string[];
+  subjectIds?: number[];
+  subjectNames?: string[];
   status: RegistrationStatus;
 }
 
@@ -95,11 +152,15 @@ export interface TeacherResponse {
   id: number;
   name: string;
   teacherId: string;
-  department?: string;
   email: string;
   phone?: string;
   address?: string;
-  subjects?: string[];
+  departmentId?: number;
+  departmentName?: string;
+  classId?: number;
+  className?: string;
+  subjectIds?: number[];
+  subjectNames?: string[];
   status: RegistrationStatus;
 }
 

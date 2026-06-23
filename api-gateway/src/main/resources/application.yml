@@ -32,7 +32,7 @@ spring:
         - id: course-service
           uri: lb://course-service
           predicates:
-            - Path=/api/courses/**
+            - Path=/api/courses/**,/api/academic/**
         - id: notification-service
           uri: lb://notification-service
           predicates:

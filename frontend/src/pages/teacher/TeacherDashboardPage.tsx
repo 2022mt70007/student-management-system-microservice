@@ -84,8 +84,9 @@ export function TeacherDashboardPage() {
             <dl className="detail-list">
               <dt>Teacher ID</dt><dd>{profile.teacherId}</dd>
               <dt>Email</dt><dd>{profile.email}</dd>
-              <dt>Department</dt><dd>{profile.department ?? '—'}</dd>
-              <dt>Subjects</dt><dd>{profile.subjects?.join(', ') || '—'}</dd>
+              <dt>Department</dt><dd>{profile.departmentName ?? '—'}</dd>
+              <dt>Class</dt><dd>{profile.className ?? '—'}</dd>
+              <dt>Subjects</dt><dd>{profile.subjectNames?.join(', ') || '—'}</dd>
             </dl>
           )}
         </section>

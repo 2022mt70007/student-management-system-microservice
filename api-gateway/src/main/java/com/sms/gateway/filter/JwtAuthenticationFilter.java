@@ -87,6 +87,9 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
         if (path.startsWith("/api/teachers/")) {
             return Set.of("TEACHER", "ADMIN").contains(role);
         }
+        if (path.startsWith("/api/academic/")) {
+            return "ADMIN".equals(role);
+        }
         if (path.startsWith("/api/courses/") || path.startsWith("/api/notifications/")) {
             return Set.of("ADMIN", "TEACHER", "STUDENT").contains(role);
         }

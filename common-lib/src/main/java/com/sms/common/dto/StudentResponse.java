@@ -19,8 +19,11 @@ public class StudentResponse {
     private String phone;
     private String address;
     private String rollNumber;
+    private Long departmentId;
+    private String departmentName;
+    private Long classId;
     private String className;
-    private String department;
-    private List<String> subjects;
+    private List<Long> subjectIds;
+    private List<String> subjectNames;
     private RegistrationStatus status;
 }

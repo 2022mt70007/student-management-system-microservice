@@ -5,25 +5,25 @@ import {
   listStudents,
   updateStudent,
 } from '../../api/admin';
-import { DataTable, Modal, formatSubjects, parseSubjects } from '../../components/DataTable';
+import { AcademicFields } from '../../components/AcademicFields';
+import { DataTable, Modal } from '../../components/DataTable';
 import { Alert, LoadingSpinner, PageHeader, StatusBadge } from '../../components/ui';
 import type { StudentRequest, StudentResponse } from '../../types';
 
-const emptyForm: StudentRequest = {
+const emptyForm: Omit<StudentRequest, 'departmentId' | 'classId' | 'subjectIds'> = {
   name: '',
   email: '',
   phone: '',
   address: '',
   rollNumber: '',
-  className: '',
-  department: '',
-  subjects: [],
 };
 
 export function StudentsPage() {
   const [rows, setRows] = useState<StudentResponse[]>([]);
-  const [form, setForm] = useState<StudentRequest>(emptyForm);
-  const [subjectsText, setSubjectsText] = useState('');
+  const [form, setForm] = useState(emptyForm);
+  const [departmentId, setDepartmentId] = useState<number | ''>('');
+  const [classId, setClassId] = useState<number | ''>('');
+  const [subjectIds, setSubjectIds] = useState<number[]>([]);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -49,7 +49,9 @@ export function StudentsPage() {
   function openCreate() {
     setEditingId(null);
     setForm(emptyForm);
-    setSubjectsText('');
+    setDepartmentId('');
+    setClassId('');
+    setSubjectIds([]);
     setModalOpen(true);
   }
 
@@ -61,20 +63,28 @@ export function StudentsPage() {
       phone: row.phone ?? '',
       address: row.address ?? '',
       rollNumber: row.rollNumber ?? '',
-      className: row.className ?? '',
-      department: row.department ?? '',
-      subjects: row.subjects ?? [],
     });
-    setSubjectsText(formatSubjects(row.subjects));
+    setDepartmentId(row.departmentId ?? '');
+    setClassId(row.classId ?? '');
+    setSubjectIds(row.subjectIds ?? []);
     setModalOpen(true);
   }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
+    if (!departmentId || !classId || subjectIds.length === 0) {
+      setError('Please select department, class, and at least one subject.');
+      return;
+    }
     setSaving(true);
     setError('');
     setMessage('');
-    const payload = { ...form, subjects: parseSubjects(subjectsText) };
+    const payload: StudentRequest = {
+      ...form,
+      departmentId: Number(departmentId),
+      classId: Number(classId),
+      subjectIds,
+    };
     try {
       if (editingId) {
         await updateStudent(editingId, payload);
@@ -128,6 +138,7 @@ export function StudentsPage() {
             { key: 'email', header: 'Email', render: (r) => r.email },
             { key: 'roll', header: 'Roll #', render: (r) => r.rollNumber ?? '—' },
             { key: 'class', header: 'Class', render: (r) => r.className ?? '—' },
+            { key: 'dept', header: 'Department', render: (r) => r.departmentName ?? '—' },
             {
               key: 'status',
               header: 'Status',
@@ -157,14 +168,6 @@ export function StudentsPage() {
               <input value={form.rollNumber} onChange={(e) => setForm({ ...form, rollNumber: e.target.value })} />
             </label>
             <label>
-              Class
-              <input value={form.className} onChange={(e) => setForm({ ...form, className: e.target.value })} />
-            </label>
-            <label>
-              Department
-              <input value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value })} />
-            </label>
-            <label>
               Phone
               <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
             </label>
@@ -172,10 +175,16 @@ export function StudentsPage() {
               Address
               <input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
             </label>
-            <label className="full-width">
-              Subjects (comma-separated)
-              <input value={subjectsText} onChange={(e) => setSubjectsText(e.target.value)} placeholder="Math, Physics" />
-            </label>
+            <div className="full-width">
+              <AcademicFields
+                departmentId={departmentId}
+                classId={classId}
+                subjectIds={subjectIds}
+                onDepartmentChange={setDepartmentId}
+                onClassChange={setClassId}
+                onSubjectIdsChange={setSubjectIds}
+              />
+            </div>
           </div>
           <div className="form-actions">
             <button type="button" className="btn btn-secondary" onClick={() => setModalOpen(false)}>
