@@ -44,6 +44,7 @@ public class SubjectService {
                 .credits(request.getCredits())
                 .description(InputSanitizer.cleanText(request.getDescription()))
                 .build();
+        subject = subjectRepository.save(subject);
         return toResponse(subject, academicClass, department.getDepartmentName());
     }
 
@@ -67,7 +68,7 @@ public class SubjectService {
         subject.setClassId(academicClass.getId());
         subject.setCredits(request.getCredits());
         subject.setDescription(InputSanitizer.cleanText(request.getDescription()));
-        return toResponse(subject, academicClass, department.getDepartmentName());
+        return toResponse(subjectRepository.save(subject), academicClass, department.getDepartmentName());
     }
 
     @Transactional
