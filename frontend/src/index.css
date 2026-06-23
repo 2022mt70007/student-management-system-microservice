@@ -198,6 +198,13 @@ button,input,select,textarea { font: inherit; }
 .task-item.task-due_soon { border-left: 4px solid #f59e0b; background: #fffbeb; }
 .task-item.task-exam_soon { border-left: 4px solid #f59e0b; background: #fffbeb; }
 
+.academic-fields { display: flex; flex-direction: column; gap: 16px; }
+.academic-fields label { display: flex; flex-direction: column; gap: 6px; font-size: 0.9rem; font-weight: 600; }
+.field-label { display: block; font-size: 0.9rem; font-weight: 600; margin-bottom: 8px; }
+.checkbox-list { display: flex; flex-direction: column; gap: 10px; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: #f8fafc; max-height: 200px; overflow: auto; }
+.checkbox-item { display: flex; align-items: center; gap: 10px; font-weight: 500; cursor: pointer; }
+.checkbox-item input { width: 16px; height: 16px; }
+
 .modal-backdrop {
   position: fixed; inset: 0; background: rgba(15, 23, 42, 0.45);
   display: grid; place-items: center; padding: 24px; z-index: 1000;

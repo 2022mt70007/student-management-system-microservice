@@ -3,6 +3,7 @@ package com.sms.teacher.service;
 import com.sms.common.dto.*;
 import com.sms.common.enums.RegistrationStatus;
 import com.sms.common.security.InputSanitizer;
+import com.sms.teacher.client.AcademicClient;
 import com.sms.teacher.client.CourseClient;
 import com.sms.teacher.client.NotificationClient;
 import com.sms.teacher.client.StudentClient;
@@ -12,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -20,6 +22,7 @@ public class TeacherService {
 
     private final TeacherRepository teacherRepository;
     private final CourseClient courseClient;
+    private final AcademicClient academicClient;
     private final NotificationClient notificationClient;
     private final StudentClient studentClient;
 
@@ -30,14 +33,20 @@ public class TeacherService {
             throw new IllegalArgumentException("Teacher with this email already exists");
         }
 
+        AcademicSelectionResponse selection = resolveAcademicSelection(request);
+
         Teacher teacher = Teacher.builder()
                 .name(InputSanitizer.cleanText(request.getName()))
                 .teacherId(InputSanitizer.cleanText(request.getTeacherId()))
-                .department(InputSanitizer.cleanText(request.getDepartment()))
                 .email(email)
                 .phone(InputSanitizer.cleanText(request.getPhone()))
                 .address(InputSanitizer.cleanText(request.getAddress()))
-                .subjects(InputSanitizer.cleanList(request.getSubjects()))
+                .departmentId(selection.getDepartmentId())
+                .departmentName(selection.getDepartmentName())
+                .classId(selection.getClassId())
+                .className(selection.getClassName())
+                .subjectIds(new ArrayList<>(selection.getSubjectIds()))
+                .subjectNames(new ArrayList<>(selection.getSubjectNames()))
                 .status(RegistrationStatus.PENDING_REGISTRATION)
                 .build();
 
@@ -49,13 +58,19 @@ public class TeacherService {
         Teacher teacher = teacherRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Teacher not found"));
 
+        AcademicSelectionResponse selection = resolveAcademicSelection(request);
+
         teacher.setName(InputSanitizer.cleanText(request.getName()));
         teacher.setTeacherId(InputSanitizer.cleanText(request.getTeacherId()));
-        teacher.setDepartment(InputSanitizer.cleanText(request.getDepartment()));
         teacher.setEmail(InputSanitizer.normalizeEmail(request.getEmail()));
         teacher.setPhone(InputSanitizer.cleanText(request.getPhone()));
         teacher.setAddress(InputSanitizer.cleanText(request.getAddress()));
-        teacher.setSubjects(InputSanitizer.cleanList(request.getSubjects()));
+        teacher.setDepartmentId(selection.getDepartmentId());
+        teacher.setDepartmentName(selection.getDepartmentName());
+        teacher.setClassId(selection.getClassId());
+        teacher.setClassName(selection.getClassName());
+        teacher.setSubjectIds(new ArrayList<>(selection.getSubjectIds()));
+        teacher.setSubjectNames(new ArrayList<>(selection.getSubjectNames()));
 
         return toResponse(teacherRepository.save(teacher));
     }
@@ -96,16 +111,28 @@ public class TeacherService {
                 .build();
     }
 
+    private AcademicSelectionResponse resolveAcademicSelection(TeacherRequest request) {
+        AcademicSelectionRequest selectionRequest = new AcademicSelectionRequest();
+        selectionRequest.setDepartmentId(request.getDepartmentId());
+        selectionRequest.setClassId(request.getClassId());
+        selectionRequest.setSubjectIds(request.getSubjectIds());
+        return academicClient.validateSelection(selectionRequest).getData();
+    }
+
     private TeacherResponse toResponse(Teacher teacher) {
         return TeacherResponse.builder()
                 .id(teacher.getId())
                 .name(teacher.getName())
                 .teacherId(teacher.getTeacherId())
-                .department(teacher.getDepartment())
                 .email(teacher.getEmail())
                 .phone(teacher.getPhone())
                 .address(teacher.getAddress())
-                .subjects(teacher.getSubjects())
+                .departmentId(teacher.getDepartmentId())
+                .departmentName(teacher.getDepartmentName())
+                .classId(teacher.getClassId())
+                .className(teacher.getClassName())
+                .subjectIds(teacher.getSubjectIds())
+                .subjectNames(teacher.getSubjectNames())
                 .status(teacher.getStatus())
                 .build();
     }

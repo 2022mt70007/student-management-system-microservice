@@ -2,6 +2,8 @@ package com.sms.common.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
@@ -18,9 +20,6 @@ public class TeacherRequest {
     @Size(max = 30)
     private String teacherId;
 
-    @Size(max = 80)
-    private String department;
-
     @NotBlank
     @Email
     @Size(max = 120)
@@ -28,7 +27,16 @@ public class TeacherRequest {
 
     @Pattern(regexp = "^$|^[+]?\\d{10,15}$", message = "Phone must be 10-15 digits")
     private String phone;
+
     @Size(max = 255)
     private String address;
-    private List<@NotBlank @Size(max = 80) String> subjects;
+
+    @NotNull
+    private Long departmentId;
+
+    @NotNull
+    private Long classId;
+
+    @NotEmpty
+    private List<Long> subjectIds;
 }

@@ -1,5 +1,6 @@
 package com.sms.admin.controller;
 
+import com.sms.admin.service.AcademicManagementService;
 import com.sms.admin.service.AdminOrchestrationService;
 import com.sms.common.dto.*;
 import io.swagger.v3.oas.annotations.Operation;
@@ -19,6 +20,7 @@ import java.util.Map;
 public class AdminController {
 
     private final AdminOrchestrationService adminService;
+    private final AcademicManagementService academicService;
 
     @GetMapping("/dashboard")
     @Operation(summary = "Admin dashboard with all tabs data")
@@ -141,5 +143,83 @@ public class AdminController {
     public ResponseEntity<ApiResponse<Void>> activateAdmin(@PathVariable Long id) {
         adminService.activateAdmin(id);
         return ResponseEntity.ok(ApiResponse.ok("Admin activated", null));
+    }
+
+    @GetMapping("/academic/departments")
+    public ResponseEntity<ApiResponse<List<DepartmentResponse>>> listDepartments(
+            @RequestParam(required = false) Boolean activeOnly) {
+        return ResponseEntity.ok(ApiResponse.ok(academicService.listDepartments(activeOnly)));
+    }
+
+    @PostMapping("/academic/departments")
+    public ResponseEntity<ApiResponse<DepartmentResponse>> createDepartment(
+            @Valid @RequestBody DepartmentRequest request) {
+        return ResponseEntity.ok(ApiResponse.ok(academicService.createDepartment(request)));
+    }
+
+    @PutMapping("/academic/departments/{id}")
+    public ResponseEntity<ApiResponse<DepartmentResponse>> updateDepartment(
+            @PathVariable Long id, @Valid @RequestBody DepartmentRequest request) {
+        return ResponseEntity.ok(ApiResponse.ok(academicService.updateDepartment(id, request)));
+    }
+
+    @DeleteMapping("/academic/departments/{id}")
+    public ResponseEntity<ApiResponse<Void>> deleteDepartment(@PathVariable Long id) {
+        academicService.deleteDepartment(id);
+        return ResponseEntity.ok(ApiResponse.ok("Department deleted", null));
+    }
+
+    @GetMapping("/academic/classes")
+    public ResponseEntity<ApiResponse<List<AcademicClassResponse>>> listClasses(
+            @RequestParam(required = false) Long departmentId) {
+        return ResponseEntity.ok(ApiResponse.ok(academicService.listClasses(departmentId)));
+    }
+
+    @PostMapping("/academic/classes")
+    public ResponseEntity<ApiResponse<AcademicClassResponse>> createClass(
+            @Valid @RequestBody AcademicClassRequest request) {
+        return ResponseEntity.ok(ApiResponse.ok(academicService.createClass(request)));
+    }
+
+    @PutMapping("/academic/classes/{id}")
+    public ResponseEntity<ApiResponse<AcademicClassResponse>> updateClass(
+            @PathVariable Long id, @Valid @RequestBody AcademicClassRequest request) {
+        return ResponseEntity.ok(ApiResponse.ok(academicService.updateClass(id, request)));
+    }
+
+    @DeleteMapping("/academic/classes/{id}")
+    public ResponseEntity<ApiResponse<Void>> deleteClass(@PathVariable Long id) {
+        academicService.deleteClass(id);
+        return ResponseEntity.ok(ApiResponse.ok("Class deleted", null));
+    }
+
+    @GetMapping("/academic/subjects")
+    public ResponseEntity<ApiResponse<List<SubjectResponse>>> listSubjects(
+            @RequestParam(required = false) Long classId) {
+        return ResponseEntity.ok(ApiResponse.ok(academicService.listSubjects(classId)));
+    }
+
+    @PostMapping("/academic/subjects")
+    public ResponseEntity<ApiResponse<SubjectResponse>> createSubject(
+            @Valid @RequestBody SubjectRequest request) {
+        return ResponseEntity.ok(ApiResponse.ok(academicService.createSubject(request)));
+    }
+
+    @PutMapping("/academic/subjects/{id}")
+    public ResponseEntity<ApiResponse<SubjectResponse>> updateSubject(
+            @PathVariable Long id, @Valid @RequestBody SubjectRequest request) {
+        return ResponseEntity.ok(ApiResponse.ok(academicService.updateSubject(id, request)));
+    }
+
+    @DeleteMapping("/academic/subjects/{id}")
+    public ResponseEntity<ApiResponse<Void>> deleteSubject(@PathVariable Long id) {
+        academicService.deleteSubject(id);
+        return ResponseEntity.ok(ApiResponse.ok("Subject deleted", null));
+    }
+
+    @PostMapping("/academic/validate-selection")
+    public ResponseEntity<ApiResponse<AcademicSelectionResponse>> validateSelection(
+            @Valid @RequestBody AcademicSelectionRequest request) {
+        return ResponseEntity.ok(ApiResponse.ok(academicService.validateSelection(request)));
     }
 }

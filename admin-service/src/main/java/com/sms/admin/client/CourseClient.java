@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@FeignClient(name = "course-service")
+@FeignClient(name = "course-service", contextId = "adminCourseClient")
 public interface CourseClient {
 
     @PostMapping("/api/courses")

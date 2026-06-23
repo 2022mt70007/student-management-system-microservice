@@ -28,17 +28,29 @@ public class Student {
 
     @Convert(converter = SensitiveStringEncryptor.class)
     private String phone;
+
     @Convert(converter = SensitiveStringEncryptor.class)
     private String address;
+
     private String rollNumber;
+
+    private Long departmentId;
+    private String departmentName;
+
+    private Long classId;
     private String className;
-    private String department;
 
     @ElementCollection
-    @CollectionTable(name = "student_subjects", joinColumns = @JoinColumn(name = "student_id"))
-    @Column(name = "subject")
+    @CollectionTable(name = "student_subject_ids", joinColumns = @JoinColumn(name = "student_id"))
+    @Column(name = "subject_id")
     @Builder.Default
-    private List<String> subjects = new ArrayList<>();
+    private List<Long> subjectIds = new ArrayList<>();
+
+    @ElementCollection
+    @CollectionTable(name = "student_subject_names", joinColumns = @JoinColumn(name = "student_id"))
+    @Column(name = "subject_name")
+    @Builder.Default
+    private List<String> subjectNames = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
     @Builder.Default

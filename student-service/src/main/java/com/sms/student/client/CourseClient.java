@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 import java.util.List;
 
-@FeignClient(name = "course-service")
+@FeignClient(name = "course-service", contextId = "studentCourseClient")
 public interface CourseClient {
 
     @GetMapping("/api/courses")

@@ -223,7 +223,8 @@ export function StudentDashboardPage() {
                   <dt>Email</dt><dd>{profile.email}</dd>
                   <dt>Roll number</dt><dd>{profile.rollNumber ?? '—'}</dd>
                   <dt>Class</dt><dd>{profile.className ?? '—'}</dd>
-                  <dt>Department</dt><dd>{profile.department ?? '—'}</dd>
+                  <dt>Department</dt><dd>{profile.departmentName ?? '—'}</dd>
+                  <dt>Subjects</dt><dd>{profile.subjectNames?.join(', ') || '—'}</dd>
                 </dl>
               )}
             </section>
