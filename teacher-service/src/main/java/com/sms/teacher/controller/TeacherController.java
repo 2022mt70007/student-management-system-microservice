@@ -51,7 +51,7 @@ public class TeacherController {
         return ResponseEntity.ok(ApiResponse.ok(teacherService.findAll()));
     }
 
-    @PatchMapping("/api/teachers/internal/{id}/activate")
+    @PostMapping("/api/teachers/internal/{id}/activate")
     public ResponseEntity<ApiResponse<TeacherResponse>> activateInternal(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.ok(teacherService.activate(id)));
     }

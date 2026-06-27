@@ -82,7 +82,7 @@ public class StudentController {
         return ResponseEntity.ok(ApiResponse.ok(studentService.findAll()));
     }
 
-    @PatchMapping("/api/students/internal/{id}/activate")
+    @PostMapping("/api/students/internal/{id}/activate")
     public ResponseEntity<ApiResponse<StudentResponse>> activateInternal(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.ok(studentService.activate(id)));
     }

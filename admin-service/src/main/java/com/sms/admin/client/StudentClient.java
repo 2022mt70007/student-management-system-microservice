@@ -23,6 +23,6 @@ public interface StudentClient {
     @GetMapping("/api/students/internal")
     ApiResponse<List<StudentResponse>> findAll();
 
-    @PatchMapping("/api/students/internal/{id}/activate")
+    @PostMapping("/api/students/internal/{id}/activate")
     ApiResponse<StudentResponse> activate(@PathVariable("id") Long id);
 }

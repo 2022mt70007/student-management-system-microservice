@@ -23,6 +23,6 @@ public interface TeacherClient {
     @GetMapping("/api/teachers/internal")
     ApiResponse<List<TeacherResponse>> findAll();
 
-    @PatchMapping("/api/teachers/internal/{id}/activate")
+    @PostMapping("/api/teachers/internal/{id}/activate")
     ApiResponse<TeacherResponse> activate(@PathVariable("id") Long id);
 }
