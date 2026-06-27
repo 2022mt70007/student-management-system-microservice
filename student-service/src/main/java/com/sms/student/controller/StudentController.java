@@ -19,10 +19,9 @@ public class StudentController {
     private final StudentService studentService;
 
     @GetMapping("/api/students/dashboard")
-    @Operation(summary = "Student dashboard with courses, progress, and latest notification")
+    @Operation(summary = "Student dashboard with assigned subjects and latest notification")
     public ResponseEntity<ApiResponse<StudentDashboardResponse>> dashboard(
             @RequestHeader("X-Profile-Id") Long profileId) {
-        studentService.seedProgressIfEmpty(profileId);
         return ResponseEntity.ok(ApiResponse.ok(studentService.dashboard(profileId)));
     }
 
@@ -31,12 +30,18 @@ public class StudentController {
         return ResponseEntity.ok(ApiResponse.ok(studentService.findById(profileId)));
     }
 
-    @GetMapping("/api/students/courses")
-    @Operation(summary = "Enrolled courses with assignments and exams for the current student")
-    public ResponseEntity<ApiResponse<List<StudentEnrolledCourseResponse>>> enrolledCourses(
+    @GetMapping("/api/students/subjects")
+    @Operation(summary = "Subjects assigned to the current student")
+    public ResponseEntity<ApiResponse<List<SubjectResponse>>> assignedSubjects(
             @RequestHeader("X-Profile-Id") Long profileId) {
-        studentService.seedProgressIfEmpty(profileId);
-        return ResponseEntity.ok(ApiResponse.ok(studentService.getEnrolledCourses(profileId)));
+        return ResponseEntity.ok(ApiResponse.ok(studentService.getAssignedSubjects(profileId)));
+    }
+
+    @GetMapping("/api/students/courses")
+    @Operation(summary = "Deprecated: use /api/students/subjects instead")
+    public ResponseEntity<ApiResponse<List<SubjectResponse>>> enrolledCourses(
+            @RequestHeader("X-Profile-Id") Long profileId) {
+        return ResponseEntity.ok(ApiResponse.ok(studentService.getAssignedSubjects(profileId)));
     }
 
     @GetMapping("/api/students/courses/{courseId}/assignments")

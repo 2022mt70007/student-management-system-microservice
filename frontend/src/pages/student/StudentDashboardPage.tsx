@@ -1,129 +1,47 @@
 import { useEffect, useState } from 'react';
-import {
-  getStudentCourses,
-  getStudentDashboard,
-  getStudentProfile,
-} from '../../api/student';
+import { getStudentDashboard, getStudentProfile } from '../../api/student';
 import { Alert, LoadingSpinner, PageHeader } from '../../components/ui';
-import type {
-  AssignmentPriorityStatus,
-  ExamPriorityStatus,
-  StudentDashboardResponse,
-  StudentEnrolledCourseResponse,
-  StudentResponse,
-} from '../../types';
+import type { StudentDashboardResponse, StudentResponse, SubjectResponse } from '../../types';
 
-type DashboardTab = 'dashboard' | 'courses';
+type DashboardTab = 'overview' | 'subjects';
 
-function formatDate(dateStr: string) {
-  return new Date(`${dateStr}T00:00:00`).toLocaleDateString(undefined, {
-    weekday: 'short',
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  });
-}
-
-function assignmentBadge(status: AssignmentPriorityStatus) {
-  switch (status) {
-    case 'OVERDUE':
-      return { label: 'Overdue', className: 'badge badge-danger' };
-    case 'DUE_SOON':
-      return { label: 'Due soon', className: 'badge badge-warning' };
-    default:
-      return { label: 'Upcoming', className: 'badge badge-muted' };
-  }
-}
-
-function examBadge(status: ExamPriorityStatus) {
-  switch (status) {
-    case 'EXAM_SOON':
-      return { label: 'This week', className: 'badge badge-warning' };
-    default:
-      return { label: 'Upcoming', className: 'badge badge-muted' };
-  }
-}
-
-function CourseCard({ course }: { course: StudentEnrolledCourseResponse }) {
+function SubjectCard({ subject }: { subject: SubjectResponse }) {
   return (
-    <article className="course-card">
-      <header className="course-card-header">
-        <div>
-          <h3>{course.title}</h3>
-          <p className="course-meta">
-            Instructor: {course.instructor ?? 'TBA'}
-            {course.credits != null && ` · ${course.credits} credits`}
-          </p>
-        </div>
-        <span className="course-progress-pill">{course.progressPercent}% complete</span>
-      </header>
-
-      {course.description && <p className="course-description">{course.description}</p>}
-
-      <section className="course-section">
-        <h4>Assignments</h4>
-        {course.assignments.length ? (
-          <ul className="task-list">
-            {course.assignments.map((a) => {
-              const badge = assignmentBadge(a.priorityStatus);
-              return (
-                <li key={a.id} className={`task-item task-${a.priorityStatus.toLowerCase()}`}>
-                  <div className="task-item-main">
-                    <strong>{a.title}</strong>
-                    {a.description && <p>{a.description}</p>}
-                  </div>
-                  <div className="task-item-meta">
-                    <span className={badge.className}>{badge.label}</span>
-                    <time dateTime={a.dueDate}>Due {formatDate(a.dueDate)}</time>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-        ) : (
-          <p className="empty-state">No assignments scheduled.</p>
+    <article className="subject-card">
+      <div className="subject-card-top">
+        <span className="subject-code">{subject.subjectCode}</span>
+        {subject.credits != null && (
+          <span className="subject-credits">{subject.credits} credits</span>
         )}
-      </section>
-
-      <section className="course-section">
-        <h4>Exams</h4>
-        {course.exams.length ? (
-          <ul className="task-list">
-            {course.exams.map((e) => {
-              const badge = examBadge(e.priorityStatus);
-              return (
-                <li key={e.id} className={`task-item task-${e.priorityStatus.toLowerCase()}`}>
-                  <div className="task-item-main">
-                    <strong>{e.title}</strong>
-                    {e.description && <p>{e.description}</p>}
-                  </div>
-                  <div className="task-item-meta">
-                    <span className={badge.className}>{badge.label}</span>
-                    <time dateTime={e.scheduledDate}>
-                      {formatDate(e.scheduledDate)}
-                    </time>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-        ) : (
-          <p className="empty-state">No exams scheduled.</p>
+      </div>
+      <h3 className="subject-name">{subject.subjectName}</h3>
+      {subject.description && (
+        <p className="subject-description">{subject.description}</p>
+      )}
+      <dl className="subject-meta">
+        {subject.className && (
+          <>
+            <dt>Class</dt>
+            <dd>{subject.className}</dd>
+          </>
         )}
-      </section>
+        {subject.departmentName && (
+          <>
+            <dt>Department</dt>
+            <dd>{subject.departmentName}</dd>
+          </>
+        )}
+      </dl>
     </article>
   );
 }
 
 export function StudentDashboardPage() {
-  const [activeTab, setActiveTab] = useState<DashboardTab>('dashboard');
+  const [activeTab, setActiveTab] = useState<DashboardTab>('overview');
   const [dashboard, setDashboard] = useState<StudentDashboardResponse | null>(null);
-  const [courses, setCourses] = useState<StudentEnrolledCourseResponse[]>([]);
   const [profile, setProfile] = useState<StudentResponse | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
-  const [coursesLoading, setCoursesLoading] = useState(false);
-  const [coursesLoaded, setCoursesLoaded] = useState(false);
 
   useEffect(() => {
     Promise.all([getStudentDashboard(), getStudentProfile()])
@@ -135,54 +53,71 @@ export function StudentDashboardPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  useEffect(() => {
-    if (activeTab !== 'courses' || coursesLoaded) return;
-
-    setCoursesLoading(true);
-    getStudentCourses()
-      .then((data) => {
-        setCourses(data);
-        setCoursesLoaded(true);
-      })
-      .catch((err) => setError(err instanceof Error ? err.message : 'Failed to load courses'))
-      .finally(() => setCoursesLoading(false));
-  }, [activeTab, coursesLoaded]);
-
   if (loading) return <LoadingSpinner />;
   if (error && !dashboard) return <Alert type="error" message={error} />;
+
+  const subjects = dashboard?.subjects ?? [];
 
   return (
     <div>
       <PageHeader
         title={`Welcome, ${profile?.name ?? 'Student'}`}
-        subtitle="Track your progress, notifications, and enrolled courses"
+        subtitle="Your class, department, and assigned subjects"
       />
 
       {error && <Alert type="error" message={error} />}
+
+      <div className="stats-grid student-stats">
+        <div className="stat-card">
+          <span className="stat-label">Subjects</span>
+          <strong className="stat-value">{dashboard?.subjectCount ?? 0}</strong>
+        </div>
+        <div className="stat-card">
+          <span className="stat-label">Class</span>
+          <strong className="stat-value stat-value-text">
+            {dashboard?.className ?? profile?.className ?? '—'}
+          </strong>
+        </div>
+        <div className="stat-card">
+          <span className="stat-label">Department</span>
+          <strong className="stat-value stat-value-text">
+            {dashboard?.departmentName ?? profile?.departmentName ?? '—'}
+          </strong>
+        </div>
+        <div className="stat-card">
+          <span className="stat-label">Roll no.</span>
+          <strong className="stat-value stat-value-text">
+            {dashboard?.rollNumber ?? profile?.rollNumber ?? '—'}
+          </strong>
+        </div>
+      </div>
 
       <div className="tab-bar" role="tablist" aria-label="Student dashboard sections">
         <button
           type="button"
           role="tab"
-          aria-selected={activeTab === 'dashboard'}
-          className={`tab-btn ${activeTab === 'dashboard' ? 'active' : ''}`}
-          onClick={() => setActiveTab('dashboard')}
+          aria-selected={activeTab === 'overview'}
+          className={`tab-btn ${activeTab === 'overview' ? 'active' : ''}`}
+          onClick={() => setActiveTab('overview')}
         >
-          My Dashboard
+          Overview
         </button>
         <button
           type="button"
           role="tab"
-          aria-selected={activeTab === 'courses'}
-          className={`tab-btn ${activeTab === 'courses' ? 'active' : ''}`}
-          onClick={() => setActiveTab('courses')}
+          aria-selected={activeTab === 'subjects'}
+          className={`tab-btn ${activeTab === 'subjects' ? 'active' : ''}`}
+          onClick={() => setActiveTab('subjects')}
         >
-          Courses
+          My Subjects
+          {subjects.length > 0 && (
+            <span className="tab-count">{subjects.length}</span>
+          )}
         </button>
       </div>
 
-      {activeTab === 'dashboard' && (
-        <div role="tabpanel">
+      {activeTab === 'overview' && (
+        <div role="tabpanel" className="student-overview">
           {dashboard?.latestNotification && (
             <div className="card highlight-card">
               <h3>Latest notification</h3>
@@ -193,26 +128,31 @@ export function StudentDashboardPage() {
 
           <div className="dashboard-grid">
             <section className="card">
-              <h3>Progress</h3>
-              {dashboard?.progress.length ? (
-                <ul className="progress-list">
-                  {dashboard.progress.map((p) => (
-                    <li key={p.courseId}>
-                      <div className="progress-row">
-                        <span>{p.courseTitle}</span>
-                        <strong>{p.progressPercent}%</strong>
-                      </div>
-                      <div className="progress-bar">
-                        <div
-                          className="progress-fill"
-                          style={{ width: `${p.progressPercent}%` }}
-                        />
-                      </div>
+              <div className="card-header-row">
+                <h3>Your subjects</h3>
+                {subjects.length > 0 && (
+                  <button
+                    type="button"
+                    className="btn btn-secondary btn-sm"
+                    onClick={() => setActiveTab('subjects')}
+                  >
+                    View all
+                  </button>
+                )}
+              </div>
+              {subjects.length ? (
+                <ul className="subject-chip-list">
+                  {subjects.map((s) => (
+                    <li key={s.id} className="subject-chip">
+                      <span className="subject-chip-code">{s.subjectCode}</span>
+                      <span>{s.subjectName}</span>
                     </li>
                   ))}
                 </ul>
               ) : (
-                <p className="empty-state">No progress data yet.</p>
+                <p className="empty-state">
+                  No subjects assigned yet. Contact your administrator.
+                </p>
               )}
             </section>
 
@@ -220,11 +160,16 @@ export function StudentDashboardPage() {
               <h3>Profile</h3>
               {profile && (
                 <dl className="detail-list">
-                  <dt>Email</dt><dd>{profile.email}</dd>
-                  <dt>Roll number</dt><dd>{profile.rollNumber ?? '—'}</dd>
-                  <dt>Class</dt><dd>{profile.className ?? '—'}</dd>
-                  <dt>Department</dt><dd>{profile.departmentName ?? '—'}</dd>
-                  <dt>Subjects</dt><dd>{profile.subjectNames?.join(', ') || '—'}</dd>
+                  <dt>Email</dt>
+                  <dd>{profile.email}</dd>
+                  <dt>Phone</dt>
+                  <dd>{profile.phone ?? '—'}</dd>
+                  <dt>Class</dt>
+                  <dd>{profile.className ?? '—'}</dd>
+                  <dt>Department</dt>
+                  <dd>{profile.departmentName ?? '—'}</dd>
+                  <dt>Roll number</dt>
+                  <dd>{profile.rollNumber ?? '—'}</dd>
                 </dl>
               )}
             </section>
@@ -232,19 +177,21 @@ export function StudentDashboardPage() {
         </div>
       )}
 
-      {activeTab === 'courses' && (
+      {activeTab === 'subjects' && (
         <div role="tabpanel">
-          {coursesLoading ? (
-            <LoadingSpinner />
-          ) : courses.length ? (
-            <div className="course-list">
-              {courses.map((course) => (
-                <CourseCard key={course.id} course={course} />
+          {subjects.length ? (
+            <div className="subject-grid">
+              {subjects.map((subject) => (
+                <SubjectCard key={subject.id} subject={subject} />
               ))}
             </div>
           ) : (
-            <div className="card">
-              <p className="empty-state">You are not enrolled in any courses yet.</p>
+            <div className="card empty-card">
+              <h3>No subjects assigned</h3>
+              <p className="empty-state">
+                Your administrator has not assigned any subjects to you yet.
+                Once subjects are added to your profile, they will appear here.
+              </p>
             </div>
           )}
         </div>

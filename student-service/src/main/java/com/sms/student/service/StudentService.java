@@ -4,12 +4,10 @@ import com.sms.common.dto.*;
 import com.sms.common.enums.RegistrationStatus;
 import com.sms.common.security.InputSanitizer;
 import com.sms.student.client.AcademicClient;
-import com.sms.student.client.CourseClient;
 import com.sms.student.client.NotificationClient;
 import com.sms.student.entity.Assignment;
 import com.sms.student.entity.Exam;
 import com.sms.student.entity.Student;
-import com.sms.student.entity.StudentProgress;
 import com.sms.student.repository.AssignmentRepository;
 import com.sms.student.repository.ExamRepository;
 import com.sms.student.repository.StudentProgressRepository;
@@ -19,9 +17,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -33,7 +30,6 @@ public class StudentService {
     private final StudentProgressRepository progressRepository;
     private final AssignmentRepository assignmentRepository;
     private final ExamRepository examRepository;
-    private final CourseClient courseClient;
     private final AcademicClient academicClient;
     private final NotificationClient notificationClient;
 
@@ -115,71 +111,30 @@ public class StudentService {
 
     @Transactional(readOnly = true)
     public StudentDashboardResponse dashboard(Long profileId) {
-        studentRepository.findById(profileId)
+        Student student = studentRepository.findById(profileId)
                 .orElseThrow(() -> new IllegalArgumentException("Student not found"));
 
-        List<StudentProgressResponse> progress = progressRepository.findByStudentId(profileId).stream()
-                .map(p -> StudentProgressResponse.builder()
-                        .courseId(p.getCourseId())
-                        .courseTitle(p.getCourseTitle())
-                        .progressPercent(p.getProgressPercent())
-                        .build())
-                .toList();
-
+        List<SubjectResponse> subjects = getAssignedSubjects(profileId);
         NotificationResponse latest = notificationClient.latest("STUDENT").getData();
 
         return StudentDashboardResponse.builder()
-                .progress(progress)
+                .className(student.getClassName())
+                .departmentName(student.getDepartmentName())
+                .rollNumber(student.getRollNumber())
+                .subjectCount(subjects.size())
+                .subjects(subjects)
                 .latestNotification(latest)
                 .build();
     }
 
     @Transactional(readOnly = true)
-    public List<StudentEnrolledCourseResponse> getEnrolledCourses(Long profileId) {
-        ensureStudentExists(profileId);
-        Map<Long, StudentProgress> progressByCourse = progressRepository.findByStudentId(profileId).stream()
-                .collect(Collectors.toMap(StudentProgress::getCourseId, Function.identity()));
-
-        if (progressByCourse.isEmpty()) {
+    public List<SubjectResponse> getAssignedSubjects(Long profileId) {
+        Student student = studentRepository.findById(profileId)
+                .orElseThrow(() -> new IllegalArgumentException("Student not found"));
+        if (student.getSubjectIds() == null || student.getSubjectIds().isEmpty()) {
             return List.of();
         }
-
-        Map<Long, CourseResponse> coursesById = courseClient.findAll().getData().stream()
-                .filter(c -> progressByCourse.containsKey(c.getId()))
-                .collect(Collectors.toMap(CourseResponse::getId, Function.identity()));
-
-        List<Long> courseIds = new ArrayList<>(progressByCourse.keySet());
-        Map<Long, List<AssignmentResponse>> assignmentsByCourse = assignmentRepository
-                .findByCourseIdInOrderByDueDateAsc(courseIds).stream()
-                .map(this::toAssignmentResponse)
-                .collect(Collectors.groupingBy(AssignmentResponse::getCourseId));
-        Map<Long, List<ExamResponse>> examsByCourse = examRepository
-                .findByCourseIdInOrderByScheduledDateAsc(courseIds).stream()
-                .map(this::toExamResponse)
-                .collect(Collectors.groupingBy(ExamResponse::getCourseId));
-
-        return progressByCourse.values().stream()
-                .map(progress -> {
-                    CourseResponse course = coursesById.get(progress.getCourseId());
-                    if (course == null) {
-                        return null;
-                    }
-                    return StudentEnrolledCourseResponse.builder()
-                            .id(course.getId())
-                            .title(course.getTitle())
-                            .description(course.getDescription())
-                            .department(course.getDepartment())
-                            .instructor(course.getInstructor())
-                            .credits(course.getCredits())
-                            .progressPercent(progress.getProgressPercent())
-                            .assignments(assignmentsByCourse.getOrDefault(course.getId(), List.of()))
-                            .exams(examsByCourse.getOrDefault(course.getId(), List.of()))
-                            .build();
-                })
-                .filter(Objects::nonNull)
-                .sorted(Comparator.comparing(StudentEnrolledCourseResponse::getTitle,
-                        Comparator.nullsLast(String::compareToIgnoreCase)))
-                .toList();
+        return academicClient.findSubjectsByIds(student.getSubjectIds()).getData();
     }
 
     @Transactional(readOnly = true)
@@ -198,30 +153,10 @@ public class StudentService {
                 .toList();
     }
 
-    @Transactional
-    public void seedProgressIfEmpty(Long studentId) {
-        if (progressRepository.findByStudentId(studentId).isEmpty()) {
-            List<CourseResponse> courses = courseClient.findAll().getData();
-            for (CourseResponse course : courses) {
-                StudentProgress progress = StudentProgress.builder()
-                        .studentId(studentId)
-                        .courseId(course.getId())
-                        .courseTitle(course.getTitle())
-                        .progressPercent(0)
-                        .build();
-                progressRepository.save(progress);
-            }
-        }
-    }
-
-    private void ensureStudentExists(Long profileId) {
+    private void ensureEnrolled(Long profileId, Long courseId) {
         if (!studentRepository.existsById(profileId)) {
             throw new IllegalArgumentException("Student not found");
         }
-    }
-
-    private void ensureEnrolled(Long profileId, Long courseId) {
-        ensureStudentExists(profileId);
         if (!progressRepository.existsByStudentIdAndCourseId(profileId, courseId)) {
             throw new IllegalArgumentException("You are not enrolled in this course");
         }

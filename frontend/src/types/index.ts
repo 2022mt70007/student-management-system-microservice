@@ -232,7 +232,11 @@ export interface StudentEnrolledCourseResponse {
 }
 
 export interface StudentDashboardResponse {
-  progress: StudentProgressResponse[];
+  className?: string;
+  departmentName?: string;
+  rollNumber?: string;
+  subjectCount: number;
+  subjects: SubjectResponse[];
   latestNotification?: NotificationResponse;
 }
 

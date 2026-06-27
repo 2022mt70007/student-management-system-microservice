@@ -1,11 +1,9 @@
 import { apiClient } from './client';
 import type {
   ApiResponse,
-  AssignmentResponse,
-  ExamResponse,
   StudentDashboardResponse,
-  StudentEnrolledCourseResponse,
   StudentResponse,
+  SubjectResponse,
 } from '../types';
 
 export async function getStudentDashboard() {
@@ -22,23 +20,9 @@ export async function getStudentProfile() {
   return data.data;
 }
 
-export async function getStudentCourses() {
-  const { data } = await apiClient.get<ApiResponse<StudentEnrolledCourseResponse[]>>(
-    '/api/students/courses',
-  );
-  return data.data;
-}
-
-export async function getCourseAssignments(courseId: number) {
-  const { data } = await apiClient.get<ApiResponse<AssignmentResponse[]>>(
-    `/api/students/courses/${courseId}/assignments`,
-  );
-  return data.data;
-}
-
-export async function getCourseExams(courseId: number) {
-  const { data } = await apiClient.get<ApiResponse<ExamResponse[]>>(
-    `/api/students/courses/${courseId}/exams`,
+export async function getStudentSubjects() {
+  const { data } = await apiClient.get<ApiResponse<SubjectResponse[]>>(
+    '/api/students/subjects',
   );
   return data.data;
 }

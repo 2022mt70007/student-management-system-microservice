@@ -41,6 +41,16 @@ if (stored?.token) {
   setAuthToken(stored.token);
 }
 
+apiClient.interceptors.request.use((config) => {
+  const auth = loadStoredAuth();
+  if (auth?.profileId != null) {
+    config.headers['X-Profile-Id'] = String(auth.profileId);
+    config.headers['X-User-Email'] = auth.email;
+    config.headers['X-User-Role'] = auth.role;
+  }
+  return config;
+});
+
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {

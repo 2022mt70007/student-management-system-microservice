@@ -118,6 +118,31 @@ public class SubjectService {
         return toResponse(subject, academicClass, department.getDepartmentName());
     }
 
+    @Transactional(readOnly = true)
+    public List<SubjectResponse> findByIds(List<Long> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return List.of();
+        }
+        List<Long> distinctIds = ids.stream().distinct().toList();
+        Map<Long, AcademicClass> classesById = classService.findAll().stream()
+                .collect(Collectors.toMap(
+                        com.sms.common.dto.AcademicClassResponse::getId,
+                        r -> classService.getEntity(r.getId())));
+        Map<Long, String> departmentNames = departmentService.findAll().stream()
+                .collect(Collectors.toMap(
+                        com.sms.common.dto.DepartmentResponse::getId,
+                        com.sms.common.dto.DepartmentResponse::getDepartmentName));
+
+        return subjectRepository.findAllById(distinctIds).stream()
+                .sorted(Comparator.comparing(Subject::getSubjectName, String.CASE_INSENSITIVE_ORDER))
+                .map(subject -> {
+                    AcademicClass cls = classesById.get(subject.getClassId());
+                    String deptName = cls != null ? departmentNames.get(cls.getDepartmentId()) : null;
+                    return toResponse(subject, cls, deptName);
+                })
+                .toList();
+    }
+
     List<Subject> findEntitiesByIds(List<Long> ids) {
         List<Subject> subjects = subjectRepository.findAllById(ids);
         if (subjects.size() != ids.size()) {
