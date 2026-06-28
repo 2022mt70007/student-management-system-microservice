@@ -31,6 +31,8 @@ function SubjectCard({ subject }: { subject: SubjectResponse }) {
             <dd>{subject.departmentName}</dd>
           </>
         )}
+        <dt>Teacher</dt>
+        <dd>{subject.teacherName ?? 'Not assigned'}</dd>
       </dl>
     </article>
   );

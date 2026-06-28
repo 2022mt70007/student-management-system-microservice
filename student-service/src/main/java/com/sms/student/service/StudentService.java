@@ -5,6 +5,7 @@ import com.sms.common.enums.RegistrationStatus;
 import com.sms.common.security.InputSanitizer;
 import com.sms.student.client.AcademicClient;
 import com.sms.student.client.NotificationClient;
+import com.sms.student.client.TeacherClient;
 import com.sms.student.entity.Assignment;
 import com.sms.student.entity.Exam;
 import com.sms.student.entity.Student;
@@ -32,6 +33,7 @@ public class StudentService {
     private final ExamRepository examRepository;
     private final AcademicClient academicClient;
     private final NotificationClient notificationClient;
+    private final TeacherClient teacherClient;
 
     @Transactional
     public StudentResponse create(StudentRequest request) {
@@ -91,6 +93,16 @@ public class StudentService {
     }
 
     @Transactional(readOnly = true)
+    public List<StudentResponse> findByDepartmentAndClass(Long departmentId, Long classId) {
+        if (departmentId == null || classId == null) {
+            return List.of();
+        }
+        return studentRepository.findByDepartmentIdAndClassIdOrderByNameAsc(departmentId, classId).stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
     public List<StudentResponse> findAll() {
         return studentRepository.findAll().stream().map(this::toResponse).toList();
     }
@@ -134,7 +146,50 @@ public class StudentService {
         if (student.getSubjectIds() == null || student.getSubjectIds().isEmpty()) {
             return List.of();
         }
-        return academicClient.findSubjectsByIds(student.getSubjectIds()).getData();
+        List<SubjectResponse> subjects = academicClient.findSubjectsByIds(student.getSubjectIds()).getData();
+        return enrichSubjectsWithTeachers(student, subjects);
+    }
+
+    private List<SubjectResponse> enrichSubjectsWithTeachers(Student student, List<SubjectResponse> subjects) {
+        if (subjects == null || subjects.isEmpty()) {
+            return List.of();
+        }
+        if (student.getDepartmentId() == null || student.getClassId() == null) {
+            return subjects;
+        }
+
+        List<TeacherResponse> teachers = teacherClient
+                .findByDepartmentAndClass(student.getDepartmentId(), student.getClassId())
+                .getData();
+        if (teachers == null || teachers.isEmpty()) {
+            return subjects;
+        }
+
+        return subjects.stream()
+                .map(subject -> {
+                    String teacherName = teachers.stream()
+                            .filter(teacher -> teacher.getSubjectIds() != null
+                                    && teacher.getSubjectIds().contains(subject.getId()))
+                            .map(TeacherResponse::getName)
+                            .findFirst()
+                            .orElse(null);
+                    if (teacherName == null) {
+                        return subject;
+                    }
+                    return SubjectResponse.builder()
+                            .id(subject.getId())
+                            .subjectCode(subject.getSubjectCode())
+                            .subjectName(subject.getSubjectName())
+                            .classId(subject.getClassId())
+                            .className(subject.getClassName())
+                            .departmentId(subject.getDepartmentId())
+                            .departmentName(subject.getDepartmentName())
+                            .credits(subject.getCredits())
+                            .description(subject.getDescription())
+                            .teacherName(teacherName)
+                            .build();
+                })
+                .toList();
     }
 
     @Transactional(readOnly = true)

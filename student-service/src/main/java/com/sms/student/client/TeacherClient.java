@@ -1,18 +1,18 @@
-package com.sms.teacher.client;
+package com.sms.student.client;
 
 import com.sms.common.dto.ApiResponse;
-import com.sms.common.dto.StudentResponse;
+import com.sms.common.dto.TeacherResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
-@FeignClient(name = "student-service")
-public interface StudentClient {
+@FeignClient(name = "teacher-service")
+public interface TeacherClient {
 
-    @GetMapping("/api/students/internal/by-academic")
-    ApiResponse<List<StudentResponse>> findByDepartmentAndClass(
+    @GetMapping("/api/teachers/internal/by-academic")
+    ApiResponse<List<TeacherResponse>> findByDepartmentAndClass(
             @RequestParam("departmentId") Long departmentId,
             @RequestParam("classId") Long classId);
 }

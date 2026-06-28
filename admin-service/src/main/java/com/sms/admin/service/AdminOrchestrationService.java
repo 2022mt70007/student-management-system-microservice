@@ -21,6 +21,7 @@ public class AdminOrchestrationService {
     private final TeacherClient teacherClient;
     private final AdminProfileService adminProfileService;
     private final CourseClient courseClient;
+    private final AcademicManagementService academicManagementService;
     private final NotificationClient notificationClient;
     private final AuthClient authClient;
     private final EmailService emailService;
@@ -106,6 +107,10 @@ public class AdminOrchestrationService {
         return adminProfileService.findAll();
     }
 
+    public List<SubjectResponse> listSubjects() {
+        return academicManagementService.listSubjects(null);
+    }
+
     public CourseResponse createCourse(CourseRequest request) {
         return courseClient.create(request).getData();
     }
@@ -147,7 +152,7 @@ public class AdminOrchestrationService {
         dashboard.put("students", listStudents());
         dashboard.put("teachers", listTeachers());
         dashboard.put("admins", listAdmins());
-        dashboard.put("courses", listCourses());
+        dashboard.put("subjects", listSubjects());
         dashboard.put("notifications", listNotifications());
         return dashboard;
     }

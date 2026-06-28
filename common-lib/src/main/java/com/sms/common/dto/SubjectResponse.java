@@ -19,4 +19,5 @@ public class SubjectResponse {
     private String departmentName;
     private Integer credits;
     private String description;
+    private String teacherName;
 }

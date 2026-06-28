@@ -85,6 +85,7 @@ export interface SubjectResponse {
   departmentName?: string;
   credits?: number;
   description?: string;
+  teacherName?: string;
 }
 
 export interface StudentRequest {
@@ -241,7 +242,7 @@ export interface StudentDashboardResponse {
 }
 
 export interface TeacherDashboardResponse {
-  courses: CourseResponse[];
+  subjects: SubjectResponse[];
   notifications: NotificationResponse[];
   students: StudentResponse[];
 }
@@ -250,7 +251,7 @@ export interface AdminDashboardResponse {
   students: StudentResponse[];
   teachers: TeacherResponse[];
   admins: AdminUserResponse[];
-  courses: CourseResponse[];
+  subjects: SubjectResponse[];
   notifications: NotificationResponse[];
 }
 

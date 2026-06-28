@@ -82,6 +82,13 @@ public class StudentController {
         return ResponseEntity.ok(ApiResponse.ok(studentService.findAll()));
     }
 
+    @GetMapping("/api/students/internal/by-academic")
+    public ResponseEntity<ApiResponse<List<StudentResponse>>> findByAcademicInternal(
+            @RequestParam Long departmentId,
+            @RequestParam Long classId) {
+        return ResponseEntity.ok(ApiResponse.ok(studentService.findByDepartmentAndClass(departmentId, classId)));
+    }
+
     @PostMapping("/api/students/internal/{id}/activate")
     public ResponseEntity<ApiResponse<StudentResponse>> activateInternal(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.ok(studentService.activate(id)));

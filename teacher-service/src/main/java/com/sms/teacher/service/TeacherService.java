@@ -4,7 +4,6 @@ import com.sms.common.dto.*;
 import com.sms.common.enums.RegistrationStatus;
 import com.sms.common.security.InputSanitizer;
 import com.sms.teacher.client.AcademicClient;
-import com.sms.teacher.client.CourseClient;
 import com.sms.teacher.client.NotificationClient;
 import com.sms.teacher.client.StudentClient;
 import com.sms.teacher.entity.Teacher;
@@ -21,7 +20,6 @@ import java.util.List;
 public class TeacherService {
 
     private final TeacherRepository teacherRepository;
-    private final CourseClient courseClient;
     private final AcademicClient academicClient;
     private final NotificationClient notificationClient;
     private final StudentClient studentClient;
@@ -103,11 +101,38 @@ public class TeacherService {
     }
 
     @Transactional(readOnly = true)
-    public TeacherDashboardResponse dashboard() {
+    public List<TeacherResponse> findByDepartmentAndClass(Long departmentId, Long classId) {
+        if (departmentId == null || classId == null) {
+            return List.of();
+        }
+        return teacherRepository.findByDepartmentIdAndClassIdOrderByNameAsc(departmentId, classId).stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<SubjectResponse> getAssignedSubjects(Long profileId) {
+        Teacher teacher = teacherRepository.findById(profileId)
+                .orElseThrow(() -> new IllegalArgumentException("Teacher not found"));
+        if (teacher.getSubjectIds() == null || teacher.getSubjectIds().isEmpty()) {
+            return List.of();
+        }
+        return academicClient.findSubjectsByIds(teacher.getSubjectIds()).getData();
+    }
+
+    @Transactional(readOnly = true)
+    public TeacherDashboardResponse dashboard(Long profileId) {
+        Teacher teacher = teacherRepository.findById(profileId)
+                .orElseThrow(() -> new IllegalArgumentException("Teacher not found"));
+
+        List<StudentResponse> students = studentClient
+                .findByDepartmentAndClass(teacher.getDepartmentId(), teacher.getClassId())
+                .getData();
+
         return TeacherDashboardResponse.builder()
-                .courses(courseClient.findAll().getData())
+                .subjects(getAssignedSubjects(profileId))
                 .notifications(notificationClient.findAll("TEACHER").getData())
-                .students(studentClient.findAll().getData())
+                .students(students != null ? students : List.of())
                 .build();
     }
 

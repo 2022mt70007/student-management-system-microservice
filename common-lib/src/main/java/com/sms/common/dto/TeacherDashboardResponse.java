@@ -12,7 +12,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TeacherDashboardResponse {
-    private List<CourseResponse> courses;
+    private List<SubjectResponse> subjects;
     private List<NotificationResponse> notifications;
     private List<StudentResponse> students;
 }
