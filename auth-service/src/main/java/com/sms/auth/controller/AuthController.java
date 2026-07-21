@@ -42,4 +42,20 @@ public class AuthController {
             @Valid @RequestBody CreateInvitationRequest request) {
         return ResponseEntity.ok(ApiResponse.ok(authService.createInvitation(request)));
     }
+
+    @PostMapping("/forgot-password")
+    @Operation(summary = "Request password reset code by email")
+    public ResponseEntity<ApiResponse<Void>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        authService.forgotPassword(request);
+        return ResponseEntity.ok(ApiResponse.ok(
+                "If an account exists for that email, a reset code has been sent.", null));
+    }
+
+    @PostMapping("/reset-password")
+    @Operation(summary = "Reset password with email code and unlock account")
+    public ResponseEntity<ApiResponse<LoginResponse>> resetPassword(
+            @Valid @RequestBody ResetPasswordRequest request) {
+        return ResponseEntity.ok(ApiResponse.ok(
+                "Password reset successful", authService.resetPassword(request)));
+    }
 }

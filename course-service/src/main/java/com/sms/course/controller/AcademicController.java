@@ -125,4 +125,10 @@ public class AcademicController {
             @Valid @RequestBody AcademicSelectionRequest request) {
         return ResponseEntity.ok(ApiResponse.ok(structureService.validateSelection(request)));
     }
+
+    @PostMapping("/internal/subjects/by-ids")
+    public ResponseEntity<ApiResponse<List<SubjectResponse>>> findSubjectsByIds(
+            @RequestBody List<Long> ids) {
+        return ResponseEntity.ok(ApiResponse.ok(subjectService.findByIds(ids)));
+    }
 }

@@ -26,39 +26,49 @@ export function TeacherDashboardPage() {
     <div>
       <PageHeader
         title={`Welcome, ${profile?.name ?? 'Teacher'}`}
-        subtitle="Your courses, students, and notifications"
+        subtitle={
+          profile?.departmentName && profile?.className
+            ? `${profile.departmentName} · ${profile.className}`
+            : 'Your subjects, students, and notifications'
+        }
       />
 
       <div className="dashboard-grid">
         <section className="card">
-          <h3>My courses</h3>
-          {dashboard?.courses.length ? (
+          <h3>My subjects</h3>
+          {dashboard?.subjects.length ? (
             <ul className="simple-list">
-              {dashboard.courses.map((c) => (
-                <li key={c.id}>
-                  <span>{c.title}</span>
-                  <small>{c.department ?? '—'}</small>
+              {dashboard.subjects.map((s) => (
+                <li key={s.id}>
+                  <span>{s.subjectName}</span>
+                  <small>{s.subjectCode ?? '—'}</small>
                 </li>
               ))}
             </ul>
           ) : (
-            <p className="empty-state">No courses yet.</p>
+            <p className="empty-state">No subjects assigned yet.</p>
           )}
         </section>
 
         <section className="card">
-          <h3>Students</h3>
+          <h3>
+            Students in my class
+            {profile?.className ? ` (${profile.className})` : ''}
+          </h3>
           {dashboard?.students.length ? (
             <ul className="simple-list">
               {dashboard.students.map((s) => (
                 <li key={s.id}>
                   <span>{s.name}</span>
-                  <small>{s.email}</small>
+                  <small>
+                    {s.rollNumber ? `${s.rollNumber} · ` : ''}
+                    {s.email}
+                  </small>
                 </li>
               ))}
             </ul>
           ) : (
-            <p className="empty-state">No students listed.</p>
+            <p className="empty-state">No students in your department and class yet.</p>
           )}
         </section>
 

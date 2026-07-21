@@ -3,6 +3,16 @@ import type { AuthUser } from '../types';
 
 const baseURL = import.meta.env.VITE_API_BASE_URL || '';
 
+export class ApiError extends Error {
+  data?: unknown;
+
+  constructor(message: string, data?: unknown) {
+    super(message);
+    this.name = 'ApiError';
+    this.data = data;
+  }
+}
+
 export const apiClient = axios.create({
   baseURL,
   headers: { 'Content-Type': 'application/json' },
@@ -41,6 +51,16 @@ if (stored?.token) {
   setAuthToken(stored.token);
 }
 
+apiClient.interceptors.request.use((config) => {
+  const auth = loadStoredAuth();
+  if (auth?.profileId != null) {
+    config.headers['X-Profile-Id'] = String(auth.profileId);
+    config.headers['X-User-Email'] = auth.email;
+    config.headers['X-User-Role'] = auth.role;
+  }
+  return config;
+});
+
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -49,6 +69,6 @@ apiClient.interceptors.response.use(
       error.response?.data?.error ||
       error.message ||
       'Request failed';
-    return Promise.reject(new Error(message));
+    return Promise.reject(new ApiError(message, error.response?.data?.data));
   },
 );

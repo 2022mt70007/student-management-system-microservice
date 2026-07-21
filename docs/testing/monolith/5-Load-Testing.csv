@@ -1,0 +1,5 @@
+Scenario ID,Description,Run #,Tool,Endpoint,Load Profile,Duration,BEFORE Avg Latency (ms),BEFORE p95 (ms),BEFORE Error %,BEFORE 5xx %,BEFORE Peak CPU %,BEFORE Peak RAM (MB),AFTER Avg Latency (ms),AFTER Error %,AFTER Mitigation,Notes,Date
+LOAD-01,Normal load 50 users login,1,JMeter,POST /api/auth/login,50 threads,5 min,,,,,,,,,,,
+LOAD-02,Login flood 200 failed attempts,1,JMeter,POST /api/auth/login,200 requests,2 min,,,,,,,,,,,
+LOAD-03,Registration code guessing,1,JMeter,POST /api/auth/register/validate-code,100 wrong codes,2 min,,,,,,,,,,,
+LOAD-04,Dashboard steady load,1,JMeter,GET dashboard APIs,30 users,5 min,,,,,,,,,,,

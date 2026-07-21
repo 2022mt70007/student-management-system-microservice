@@ -23,7 +23,7 @@ export function AdminDashboardPage() {
     { label: 'Students', count: data.students.length, color: '#2563eb' },
     { label: 'Teachers', count: data.teachers.length, color: '#7c3aed' },
     { label: 'Admins', count: data.admins.length, color: '#0891b2' },
-    { label: 'Courses', count: data.courses.length, color: '#059669' },
+    { label: 'Subjects', count: data.subjects.length, color: '#059669' },
     { label: 'Notifications', count: data.notifications.length, color: '#d97706' },
   ];
 

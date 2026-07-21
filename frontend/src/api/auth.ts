@@ -1,8 +1,10 @@
 import { apiClient } from './client';
 import type {
   ApiResponse,
+  ForgotPasswordRequest,
   LoginRequest,
   LoginResponse,
+  ResetPasswordRequest,
   SetPasswordRequest,
   ValidateCodeRequest,
 } from '../types';
@@ -26,6 +28,22 @@ export async function validateCode(request: ValidateCodeRequest) {
 export async function setPassword(request: SetPasswordRequest) {
   const { data } = await apiClient.post<ApiResponse<LoginResponse>>(
     '/api/auth/register/set-password',
+    request,
+  );
+  return data;
+}
+
+export async function forgotPassword(request: ForgotPasswordRequest) {
+  const { data } = await apiClient.post<ApiResponse<null>>(
+    '/api/auth/forgot-password',
+    request,
+  );
+  return data;
+}
+
+export async function resetPassword(request: ResetPasswordRequest) {
+  const { data } = await apiClient.post<ApiResponse<LoginResponse>>(
+    '/api/auth/reset-password',
     request,
   );
   return data;

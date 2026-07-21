@@ -139,7 +139,7 @@ public class AdminController {
         return ResponseEntity.ok(ApiResponse.ok("Notification deleted", null));
     }
 
-    @PatchMapping("/internal/{id}/activate")
+    @PostMapping("/internal/{id}/activate")
     public ResponseEntity<ApiResponse<Void>> activateAdmin(@PathVariable Long id) {
         adminService.activateAdmin(id);
         return ResponseEntity.ok(ApiResponse.ok("Admin activated", null));

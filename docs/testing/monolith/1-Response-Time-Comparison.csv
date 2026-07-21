@@ -1,0 +1,13 @@
+Scenario ID,Description,Run #,Tool,Endpoint,Role,Expected,Avg Latency BEFORE (ms),p95 Latency BEFORE (ms),Avg Latency AFTER (ms),p95 Latency AFTER (ms),Notes,Date
+RT-01,Login latency,1,PowerShell,POST /api/auth/login,Admin (invalid pwd benchmark),400,200,319,,,10 requests - BEFORE done,2026-07-05
+RT-01,Login latency,2,PowerShell,POST /api/auth/login,Admin (invalid pwd benchmark),400,185,198,,,BEFORE done,2026-07-05
+RT-01,Login latency,3,PowerShell,POST /api/auth/login,Admin (invalid pwd benchmark),400,201,235,,,BEFORE done,2026-07-05
+RT-02,Admin dashboard latency,1,Postman,GET /api/admin/dashboard,Admin JWT,,,,,,,
+RT-02,Admin dashboard latency,2,Postman,GET /api/admin/dashboard,Admin JWT,,,,,,,
+RT-02,Admin dashboard latency,3,Postman,GET /api/admin/dashboard,Admin JWT,,,,,,,
+RT-03,Student dashboard latency,1,Postman,GET /api/students/dashboard,Student JWT,,,,,,,
+RT-03,Student dashboard latency,2,Postman,GET /api/students/dashboard,Student JWT,,,,,,,
+RT-03,Student dashboard latency,3,Postman,GET /api/students/dashboard,Student JWT,,,,,,,
+RT-04,Teacher dashboard latency,1,Postman,GET /api/teachers/dashboard,Teacher JWT,,,,,,,
+RT-04,Teacher dashboard latency,2,Postman,GET /api/teachers/dashboard,Teacher JWT,,,,,,,
+RT-04,Teacher dashboard latency,3,Postman,GET /api/teachers/dashboard,Teacher JWT,,,,,,,

@@ -19,9 +19,10 @@ public class TeacherController {
     private final TeacherService teacherService;
 
     @GetMapping("/api/teachers/dashboard")
-    @Operation(summary = "Teacher dashboard with courses, notifications, and students")
-    public ResponseEntity<ApiResponse<TeacherDashboardResponse>> dashboard() {
-        return ResponseEntity.ok(ApiResponse.ok(teacherService.dashboard()));
+    @Operation(summary = "Teacher dashboard with assigned subjects, notifications, and students in the teacher's class")
+    public ResponseEntity<ApiResponse<TeacherDashboardResponse>> dashboard(
+            @RequestHeader("X-Profile-Id") Long profileId) {
+        return ResponseEntity.ok(ApiResponse.ok(teacherService.dashboard(profileId)));
     }
 
     @GetMapping("/api/teachers/me")
@@ -51,7 +52,14 @@ public class TeacherController {
         return ResponseEntity.ok(ApiResponse.ok(teacherService.findAll()));
     }
 
-    @PatchMapping("/api/teachers/internal/{id}/activate")
+    @GetMapping("/api/teachers/internal/by-academic")
+    public ResponseEntity<ApiResponse<List<TeacherResponse>>> findByAcademicInternal(
+            @RequestParam Long departmentId,
+            @RequestParam Long classId) {
+        return ResponseEntity.ok(ApiResponse.ok(teacherService.findByDepartmentAndClass(departmentId, classId)));
+    }
+
+    @PostMapping("/api/teachers/internal/{id}/activate")
     public ResponseEntity<ApiResponse<TeacherResponse>> activateInternal(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.ok(teacherService.activate(id)));
     }

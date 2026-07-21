@@ -34,6 +34,25 @@ export interface SetPasswordRequest {
   password: string;
 }
 
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface ResetPasswordRequest {
+  email: string;
+  code: string;
+  newPassword: string;
+}
+
+export interface LoginErrorDetails {
+  code?: string;
+  locked?: boolean;
+  failedAttempts?: number;
+  maxAttempts?: number;
+  remainingAttempts?: number;
+  warnLockout?: boolean;
+}
+
 export type AcademicStatus = 'ACTIVE' | 'INACTIVE';
 
 export interface DepartmentRequest {
@@ -85,6 +104,7 @@ export interface SubjectResponse {
   departmentName?: string;
   credits?: number;
   description?: string;
+  teacherName?: string;
 }
 
 export interface StudentRequest {
@@ -232,12 +252,16 @@ export interface StudentEnrolledCourseResponse {
 }
 
 export interface StudentDashboardResponse {
-  progress: StudentProgressResponse[];
+  className?: string;
+  departmentName?: string;
+  rollNumber?: string;
+  subjectCount: number;
+  subjects: SubjectResponse[];
   latestNotification?: NotificationResponse;
 }
 
 export interface TeacherDashboardResponse {
-  courses: CourseResponse[];
+  subjects: SubjectResponse[];
   notifications: NotificationResponse[];
   students: StudentResponse[];
 }
@@ -246,7 +270,7 @@ export interface AdminDashboardResponse {
   students: StudentResponse[];
   teachers: TeacherResponse[];
   admins: AdminUserResponse[];
-  courses: CourseResponse[];
+  subjects: SubjectResponse[];
   notifications: NotificationResponse[];
 }
 

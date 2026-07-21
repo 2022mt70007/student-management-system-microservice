@@ -2,6 +2,8 @@
 
 A Spring Boot microservices-based Student Management System with Eureka service discovery, Spring Cloud Gateway + JWT security, Feign inter-service communication, Swagger API docs, and Docker containerization (GCP-ready).
 
+> **Monolith variant** (separate repo for comparison): `D:\NewProjectMonolithic`
+
 ## Architecture
 
 ```

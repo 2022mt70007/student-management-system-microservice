@@ -12,6 +12,10 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class StudentDashboardResponse {
-    private List<StudentProgressResponse> progress;
+    private String className;
+    private String departmentName;
+    private String rollNumber;
+    private int subjectCount;
+    private List<SubjectResponse> subjects;
     private NotificationResponse latestNotification;
 }
