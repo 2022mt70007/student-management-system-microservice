@@ -1,0 +1,7 @@
+Finding ID,Source Sheet,Scenario ID,OWASP,Severity,Description,BEFORE Result,BEFORE Evidence File,Recommendation,Mitigation Applied,AFTER Result,AFTER Evidence File,Status,Date Found,Date Retested
+F-01,Broken Access Control,AC-,,,,,,,,,,Open,,
+F-02,JWT Tampering,JWT-,,,,,,,,,,Open,,
+F-03,OWASP Top 10,SQL-,,,,,,,,,,Open,,
+F-04,OWASP Top 10,AUTH-,,,,,,,,,,Open,,
+F-05,Load Testing,LOAD-,,,,,,,,,,Open,,
+,,,,Methodology note,SES sandbox limits email to verified addresses only,,,,,,,Documented,,

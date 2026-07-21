@@ -1,5 +1,6 @@
 package com.sms.auth.config;
 
+import com.sms.auth.exception.LoginRejectedException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import com.sms.common.dto.ApiResponse;
@@ -21,6 +22,23 @@ import java.util.Map;
 @RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(LoginRejectedException.class)
+    public ResponseEntity<ApiResponse<Map<String, Object>>> handleLoginRejected(
+            LoginRejectedException ex, HttpServletRequest request) {
+        log.warn("Login rejected at {}: locked={}, attempts={}/{}",
+                request.getRequestURI(), ex.isLocked(), ex.getFailedAttempts(), ex.getMaxAttempts());
+        Map<String, Object> details = buildErrorDetails(
+                ex.isLocked() ? "ACCOUNT_LOCKED" : "INVALID_CREDENTIALS",
+                request.getRequestURI(),
+                null);
+        details.put("locked", ex.isLocked());
+        details.put("failedAttempts", ex.getFailedAttempts());
+        details.put("maxAttempts", ex.getMaxAttempts());
+        details.put("remainingAttempts", ex.getRemainingAttempts());
+        details.put("warnLockout", ex.isWarnLockout());
+        return ResponseEntity.badRequest().body(ApiResponse.error(ex.getMessage(), details));
+    }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<Map<String, Object>>> handleValidation(

@@ -3,6 +3,16 @@ import type { AuthUser } from '../types';
 
 const baseURL = import.meta.env.VITE_API_BASE_URL || '';
 
+export class ApiError extends Error {
+  data?: unknown;
+
+  constructor(message: string, data?: unknown) {
+    super(message);
+    this.name = 'ApiError';
+    this.data = data;
+  }
+}
+
 export const apiClient = axios.create({
   baseURL,
   headers: { 'Content-Type': 'application/json' },
@@ -59,6 +69,6 @@ apiClient.interceptors.response.use(
       error.response?.data?.error ||
       error.message ||
       'Request failed';
-    return Promise.reject(new Error(message));
+    return Promise.reject(new ApiError(message, error.response?.data?.data));
   },
 );

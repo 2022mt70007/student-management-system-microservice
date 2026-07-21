@@ -1,0 +1,10 @@
+Step ID,Task,Tool,Input,Expected,Status,Date,Notes
+SETUP-01,Start VM veritascampus-mono-vm,gcloud,asia-south1-a,VM RUNNING,Not Started,,
+SETUP-02,Start Docker stack,SSH,docker-compose.prod.yml,Containers Up,Not Started,,
+SETUP-03,Verify https://veritascampus.page,Browser,,HTTP 200,Not Started,,
+SETUP-04,Confirm VM e2-standard-2,gcloud,,2 vCPU 8 GB RAM,Done,,
+SETUP-05,Verify academic seed depts=2 classes=2 subjects=5,DB,,Counts match,Not Started,,
+SETUP-06,Admin login works,Browser,sidharthsangamam@gmail.com,Login success,Not Started,,
+SETUP-07,Register test student (SES-verified email),Admin UI,Verified Gmail,Student ACTIVE,Not Started,,Use DB code if email fails
+SETUP-08,Register test teacher (SES-verified email),Admin UI,Verified Gmail,Teacher ACTIVE,Not Started,,Use DB code if email fails
+SETUP-09,Create Postman environment,Postman,https://veritascampus.page,Tokens saved,Not Started,,

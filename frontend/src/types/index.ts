@@ -34,6 +34,25 @@ export interface SetPasswordRequest {
   password: string;
 }
 
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface ResetPasswordRequest {
+  email: string;
+  code: string;
+  newPassword: string;
+}
+
+export interface LoginErrorDetails {
+  code?: string;
+  locked?: boolean;
+  failedAttempts?: number;
+  maxAttempts?: number;
+  remainingAttempts?: number;
+  warnLockout?: boolean;
+}
+
 export type AcademicStatus = 'ACTIVE' | 'INACTIVE';
 
 export interface DepartmentRequest {

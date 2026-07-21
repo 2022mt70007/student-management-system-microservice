@@ -1,7 +1,10 @@
 package com.sms.auth.service;
 
+import com.sms.auth.entity.PasswordResetToken;
 import com.sms.auth.entity.RegistrationInvitation;
 import com.sms.auth.entity.User;
+import com.sms.auth.exception.LoginRejectedException;
+import com.sms.auth.repository.PasswordResetTokenRepository;
 import com.sms.auth.repository.RegistrationInvitationRepository;
 import com.sms.auth.repository.UserRepository;
 import com.sms.common.dto.*;
@@ -25,8 +28,11 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final RegistrationInvitationRepository invitationRepository;
+    private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final ProfileActivationService profileActivationService;
+    private final AuthLockService authLockService;
+    private final AuthEmailService authEmailService;
 
     @Value("${jwt.secret}")
     private String jwtSecret;
@@ -40,8 +46,11 @@ public class AuthService {
     @Value("${app.registration.code-expiry-days:7}")
     private int codeExpiryDays;
 
-    @Value("${app.security.max-failed-login-attempts:5}")
+    @Value("${app.security.max-failed-login-attempts:6}")
     private int maxFailedLoginAttempts;
+
+    @Value("${app.security.lockout-warning-after-attempts:3}")
+    private int lockoutWarningAfterAttempts;
 
     @Value("${app.security.account-lock-minutes:15}")
     private int accountLockMinutes;
@@ -51,6 +60,9 @@ public class AuthService {
 
     @Value("${app.security.verification-lock-minutes:30}")
     private int verificationLockMinutes;
+
+    @Value("${app.password-reset.code-expiry-minutes:30}")
+    private int passwordResetCodeExpiryMinutes;
 
     private final Map<String, AttemptState> verificationAttempts = new ConcurrentHashMap<>();
 
@@ -146,7 +158,8 @@ public class AuthService {
             user.setEnabled(true);
             user.setRole(invitation.getRole());
             user.setProfileId(invitation.getProfileId());
-            resetLoginLock(user);
+            user.setFailedLoginAttempts(0);
+            user.setAccountLockedUntil(null);
             userRepository.save(user);
 
             invitation.setUsed(true);
@@ -166,19 +179,90 @@ public class AuthService {
     public LoginResponse login(LoginRequest request) {
         String email = InputSanitizer.normalizeEmail(request.getEmail());
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid credentials"));
+                .orElseThrow(() -> new LoginRejectedException(
+                        "Invalid credentials", false, 0, maxFailedLoginAttempts, false));
 
         if (isAccountLocked(user)) {
-            throw new IllegalArgumentException("Account temporarily locked. Try again later.");
+            throw new LoginRejectedException(
+                    "Account temporarily locked. Use Forgot password to unlock, or try again later.",
+                    true,
+                    maxFailedLoginAttempts,
+                    maxFailedLoginAttempts,
+                    true);
         }
 
-        if (!user.isEnabled() || !passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            registerFailedLogin(user);
-            throw new IllegalArgumentException("Invalid credentials");
+        if (!user.isEnabled() || user.getPassword() == null
+                || !passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            int attempts = authLockService.recordFailedLogin(
+                    user.getId(), maxFailedLoginAttempts, accountLockMinutes);
+
+            if (attempts >= maxFailedLoginAttempts) {
+                throw new LoginRejectedException(
+                        "Account locked after " + maxFailedLoginAttempts
+                                + " failed attempts. Use Forgot password to reset and unlock.",
+                        true,
+                        maxFailedLoginAttempts,
+                        maxFailedLoginAttempts,
+                        true);
+            }
+
+            boolean warn = attempts >= lockoutWarningAfterAttempts;
+            String message = "Invalid credentials. Attempt " + attempts + " of " + maxFailedLoginAttempts + ".";
+            if (warn) {
+                message += " Warning: your account will be locked after "
+                        + maxFailedLoginAttempts + " failed attempts.";
+            }
+            throw new LoginRejectedException(
+                    message, false, attempts, maxFailedLoginAttempts, warn);
         }
 
-        resetLoginLock(user);
+        authLockService.clearLock(user.getId());
+        return buildLoginResponse(user);
+    }
+
+    @Transactional
+    public void forgotPassword(ForgotPasswordRequest request) {
+        String email = InputSanitizer.normalizeEmail(request.getEmail());
+        userRepository.findByEmail(email).ifPresent(user -> {
+            passwordResetTokenRepository.deleteByEmail(email);
+            String code = generateCode();
+            PasswordResetToken token = PasswordResetToken.builder()
+                    .email(email)
+                    .code(code)
+                    .used(false)
+                    .expiresAt(LocalDateTime.now().plusMinutes(passwordResetCodeExpiryMinutes))
+                    .createdAt(LocalDateTime.now())
+                    .build();
+            passwordResetTokenRepository.save(token);
+            authEmailService.sendPasswordResetEmail(email, code);
+        });
+    }
+
+    @Transactional
+    public LoginResponse resetPassword(ResetPasswordRequest request) {
+        String email = InputSanitizer.normalizeEmail(request.getEmail());
+        String code = InputSanitizer.cleanText(request.getCode());
+
+        PasswordResetToken token = passwordResetTokenRepository
+                .findByEmailAndCodeAndUsedFalse(email, code)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid or expired reset code"));
+
+        if (token.getExpiresAt().isBefore(LocalDateTime.now())) {
+            throw new IllegalArgumentException("Reset code has expired");
+        }
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid or expired reset code"));
+
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        user.setEnabled(true);
+        user.setFailedLoginAttempts(0);
+        user.setAccountLockedUntil(null);
         userRepository.save(user);
+
+        token.setUsed(true);
+        passwordResetTokenRepository.save(token);
+
         return buildLoginResponse(user);
     }
 
@@ -209,21 +293,6 @@ public class AuthService {
 
     private boolean isAccountLocked(User user) {
         return user.getAccountLockedUntil() != null && user.getAccountLockedUntil().isAfter(LocalDateTime.now());
-    }
-
-    private void registerFailedLogin(User user) {
-        int attempts = user.getFailedLoginAttempts() + 1;
-        user.setFailedLoginAttempts(attempts);
-        if (attempts >= maxFailedLoginAttempts) {
-            user.setAccountLockedUntil(LocalDateTime.now().plusMinutes(accountLockMinutes));
-            user.setFailedLoginAttempts(0);
-        }
-        userRepository.save(user);
-    }
-
-    private void resetLoginLock(User user) {
-        user.setFailedLoginAttempts(0);
-        user.setAccountLockedUntil(null);
     }
 
     private void assertVerificationAllowed(String email) {
